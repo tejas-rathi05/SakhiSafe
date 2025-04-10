@@ -117,6 +117,10 @@ When abnormal activity or vital‑sign anomalies are detected, the app prompts a
 |:-----------:|:----------:|:----------:|
 | ![Home Screen](images/Home.png) | ![Vitals Screen](images/Vitals.png) | ![SOS Prompt](images/SOS.png) | 
 
+## Wear OS App
+| Login Screen | Register Screen |
+|:-----------:|:----------:|
+| ![Login Screen](images/Login.png) | ![Register Screen](images/Register.png) | 
 
 ---
 
