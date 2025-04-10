@@ -15,7 +15,6 @@
 
 ## Table of Contents
 
-- [Logo](#logo)  
 - [Overview](#overview)  
 - [Features](#features)  
 - [Technical Approach](#technical-approach)  
