@@ -46,10 +46,22 @@ fun HeyNavGraph(navController: NavHostController, startDestination: String) {
                 onGoBack = { navController.popBackStack() },
             )
         }
-        composable(Routes.Home) { HomeScreen() }
+        composable(Routes.Home) {
+            HomeScreen(onOpenContacts = { navController.navigate(Routes.Contacts) })
+        }
         composable(Routes.Vitals) { VitalsScreen() }
-        composable(Routes.Contacts) { ContactsScreen() }
-        composable(Routes.AddContact) { AddContactScreen() }
+        composable(Routes.Contacts) {
+            ContactsScreen(
+                onAddContact = { navController.navigate(Routes.AddContact) },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.AddContact) {
+            AddContactScreen(
+                onSaved = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
+            )
+        }
         composable(Routes.Help) { HelpScreen() }
         composable(Routes.About) { AboutScreen() }
         composable(Routes.ActiveAlert) { ActiveAlertScreen() }
