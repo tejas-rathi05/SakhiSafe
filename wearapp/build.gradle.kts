@@ -71,4 +71,8 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Check for the latest version
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // For Android-specific features
 
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.25")
 }
