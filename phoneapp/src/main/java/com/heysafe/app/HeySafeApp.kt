@@ -18,7 +18,7 @@ private val ROUTES_WITH_BOTTOM_NAV = setOf(
 )
 
 @Composable
-fun HeySafeApp(startDestination: String = Routes.Home) {
+fun HeySafeApp(startDestination: String = Routes.Splash) {
     HeySafeTheme {
         val navController = rememberNavController()
         val backStack by navController.currentBackStackEntryAsState()

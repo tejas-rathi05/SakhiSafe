@@ -18,9 +18,34 @@ import com.heysafe.app.ui.vitals.VitalsScreen
 @Composable
 fun HeyNavGraph(navController: NavHostController, startDestination: String) {
     NavHost(navController, startDestination = startDestination) {
-        composable(Routes.Splash) { SplashScreen() }
-        composable(Routes.Login) { LoginScreen() }
-        composable(Routes.Register) { RegisterScreen() }
+        composable(Routes.Splash) {
+            SplashScreen(
+                onAuthenticated = {
+                    navController.navigate(Routes.Home) { popUpTo(Routes.Splash) { inclusive = true } }
+                },
+                onUnauthenticated = {
+                    navController.navigate(Routes.Login) { popUpTo(Routes.Splash) { inclusive = true } }
+                },
+            )
+        }
+        composable(Routes.Login) {
+            LoginScreen(
+                onLoggedIn = {
+                    navController.navigate(Routes.Home) { popUpTo(Routes.Login) { inclusive = true } }
+                },
+                onGoToRegister = { navController.navigate(Routes.Register) },
+            )
+        }
+        composable(Routes.Register) {
+            RegisterScreen(
+                onRegistered = {
+                    navController.navigate(Routes.Home) {
+                        popUpTo(Routes.Login) { inclusive = true }
+                    }
+                },
+                onGoBack = { navController.popBackStack() },
+            )
+        }
         composable(Routes.Home) { HomeScreen() }
         composable(Routes.Vitals) { VitalsScreen() }
         composable(Routes.Contacts) { ContactsScreen() }
