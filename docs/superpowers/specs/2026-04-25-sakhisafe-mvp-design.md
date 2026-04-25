@@ -307,7 +307,7 @@ match /users/{uid} {
 - **Audio player:** `<audio>` tag with `src="data:audio/mp4;base64,${alert.audioBase64}"` — plays directly from the embedded payload, no extra fetch.
 - **History table:** all alerts, newest first, status pills, click to view.
 - **"Mark Resolved" button:** writes `status: "resolved"` back to Firestore.
-- Deploy via `firebase init hosting` + `firebase deploy --only hosting`. URL like `https://heysafe-demo.web.app`.
+- Deploy via `firebase init hosting` + `firebase deploy --only hosting`. URL like `https://heysafe-demo-4bca5.web.app`.
 
 **Firestore rules** (extend Phase 2):
 ```

@@ -277,7 +277,7 @@ This is a **manual step the user performs** in the Firebase console; the plan do
 
 In browser: https://console.firebase.google.com/
 - Click "Add project"
-- Name: `heysafe-demo`
+- Name: `heysafe-demo-4bca5`
 - Disable Google Analytics (not needed)
 - Select Spark plan when prompted
 
@@ -577,7 +577,7 @@ adb shell am start -n com.heysafe.app/.MainActivity
 adb logcat -d -s HeySafe
 ```
 
-Expected: logcat shows `Firebase initialized: [DEFAULT] / heysafe-demo` (or your project ID). Screen shows "HeySafe — Phase 1 OK".
+Expected: logcat shows `Firebase initialized: [DEFAULT] / heysafe-demo-4bca5` (or your project ID). Screen shows "HeySafe — Phase 1 OK".
 
 - [ ] **Step 6: Commit**
 
@@ -965,7 +965,7 @@ service cloud.firestore {
 
 User runs (one-time, requires `npm i -g firebase-tools` + `firebase login`):
 ```bash
-firebase use heysafe-demo
+firebase use heysafe-demo-4bca5
 firebase deploy --only firestore:rules
 ```
 
@@ -3571,7 +3571,7 @@ git commit -m "phase5: ml inference fused with heuristic in sensor service"
 - [ ] **Step 2: `dashboard/.firebaserc`**
 
 ```json
-{ "projects": { "default": "heysafe-demo" } }
+{ "projects": { "default": "heysafe-demo-4bca5" } }
 ```
 
 - [ ] **Step 3: `style.css`**
@@ -3625,13 +3625,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/fireba
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 const firebaseConfig = {
-  // user pastes from Firebase console: project settings → general → web app
-  apiKey: "REPLACE",
-  authDomain: "heysafe-demo.firebaseapp.com",
-  projectId: "heysafe-demo",
-  storageBucket: "heysafe-demo.appspot.com",
-  messagingSenderId: "REPLACE",
-  appId: "REPLACE",
+  apiKey: "AIzaSyATStY2eljhBrYZTABxLY_NcSIAGPZ3HrY",
+  authDomain: "heysafe-demo-4bca5.firebaseapp.com",
+  projectId: "heysafe-demo-4bca5",
+  storageBucket: "heysafe-demo-4bca5.firebasestorage.app",
+  messagingSenderId: "1067270702474",
+  appId: "1:1067270702474:web:9770290964c7565c347473",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -3791,7 +3790,7 @@ cd dashboard
 firebase deploy --only hosting
 ```
 
-Open the printed URL (e.g. `https://heysafe-demo.web.app`). Login with `guardian@heysafe.demo` / `guardian123`. Trigger an alert from the watch. Within ~3 seconds the dashboard should show the active alert card with map, HR chart, and (after 30s) audio.
+Open the printed URL (e.g. `https://heysafe-demo-4bca5.web.app`). Login with `guardian@heysafe.demo` / `guardian123`. Trigger an alert from the watch. Within ~3 seconds the dashboard should show the active alert card with map, HR chart, and (after 30s) audio.
 
 - [ ] **Step 5: Commit**
 
