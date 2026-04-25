@@ -37,7 +37,7 @@ The judges should leave believing:
 | Phone app language | **Kotlin + Jetpack Compose + Material 3** | Figma uses gradient cards, animated rings, custom illustrations — Compose builds these in 1/3 the code of XML. Keeps language consistent with the watch app. |
 | Watch app language | **Kotlin + Wear Compose** (already there) | No change. |
 | Phone app architecture | **Single-Activity + Compose Navigation + ViewModels** | Standard 2026 Android pattern. |
-| Backend | **Firebase (Spark/free tier)** — Auth, Firestore, Storage, Hosting | Zero server code, real cloud, free, judges see "the data goes somewhere". |
+| Backend | **Firebase (Spark/free tier)** — Auth, Firestore, Hosting | Zero server code, real cloud, free, judges see "the data goes somewhere". (Firebase Storage now requires Blaze billing for new projects, so we don't use it — see audio handling below.) |
 | Watch ↔ Phone transport | **Wear Data Layer API** (already wired) | Working today, no Bluetooth GATT needed. |
 | Phone ↔ Cloud transport | **Firebase Android SDK** | Direct, no intermediary. |
 | Dashboard ↔ Cloud transport | **Firebase JS SDK** (`v10`, modular) | Real-time `onSnapshot` listeners give the "lights up live" demo moment. |
@@ -77,8 +77,7 @@ The judges should leave believing:
                           │   - users/{uid}                │
                           │   - users/{uid}/contacts/{id}  │
                           │   - alerts/{alertId}           │
-                          │ • Storage                      │
-                          │   - audio/{alertId}.m4a        │
+                          │     (audio inlined as base64)  │
                           │ • Hosting (dashboard.html)     │
                           └────────────────┬───────────────┘
                                            │ realtime
@@ -138,7 +137,7 @@ Each phase is independently shippable. If we have to stop early, we still have a
 - Rename modules: `app/ → phoneapp/`, `heysafeapp/ → wearapp/`.
 - Rename packages: `com.example.myapp → com.heysafe.app` (and `.wear` for watch).
 - Create Firebase project on console, register Android app, download `google-services.json` for both modules.
-- Add Firebase BOM, Auth, Firestore, Storage SDKs to `phoneapp/build.gradle.kts`.
+- Add Firebase BOM, Auth, Firestore SDKs to `phoneapp/build.gradle.kts`. (No Storage SDK — Firebase Storage now requires Blaze billing for new projects; we encode audio as base64 in the alert doc instead.)
 - Update `libs.versions.toml` to add Compose BOM, Material 3, Coil, Lottie, Firebase BOM. **No Hilt** for MVP — single-instance manual DI is fine for 7 days.
 - Verify clean build, app launches with Firebase initialized (log a token).
 
@@ -249,12 +248,12 @@ match /users/{uid} {
      location: { lat, lng, accuracy },
      hrWindow: [...], // 60s leading up to alert
      motionWindow: [...],
-     audioStorageUrl: null,         // filled when upload completes
+     audioBase64: null,             // filled after recording completes
      contactsNotified: [phoneNumbers],
      resolvedAt: null
    }
    ```
-4. Upload audio to `gs://.../audio/{alertId}.m4a` when recording completes; patch `audioStorageUrl`.
+4. When the 30-sec recording finishes, base64-encode it and patch `audioBase64` onto the alert doc. Recording bitrate: **64 kbps mono AAC** so the encoded payload stays well under Firestore's 1 MB doc limit (~320 KB typical).
 5. **Fan-out WhatsApp:** for each contact, build URL:
    `https://wa.me/<phoneE164>?text=<urlencoded>`
    Message: `🚨 SOS from ${userName}. I need help. Live location: https://maps.google.com/?q=${lat},${lng}`
@@ -305,7 +304,7 @@ match /users/{uid} {
 - **Active Alert banner:** `onSnapshot` on `alerts` where `status == "active"`. When one appears: red flash, siren sound, all alert details below.
 - **Live map** (Leaflet + OSM): pin at `alert.location`, auto-pan/zoom.
 - **HR timeline chart:** Chart.js line chart of `alert.hrWindow`.
-- **Audio player:** `<audio>` tag pointed at the Storage signed URL.
+- **Audio player:** `<audio>` tag with `src="data:audio/mp4;base64,${alert.audioBase64}"` — plays directly from the embedded payload, no extra fetch.
 - **History table:** all alerts, newest first, status pills, click to view.
 - **"Mark Resolved" button:** writes `status: "resolved"` back to Firestore.
 - Deploy via `firebase init hosting` + `firebase deploy --only hosting`. URL like `https://heysafe-demo.web.app`.

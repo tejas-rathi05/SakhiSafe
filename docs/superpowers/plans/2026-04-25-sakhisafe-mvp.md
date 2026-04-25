@@ -4,7 +4,7 @@
 
 **Goal:** Ship the HeySafe demo end-to-end in 7 days: Wear OS sensor pipeline → on-device heuristic + WESAD-trained TFLite detection → Compose phone app with multi-contact WhatsApp alert + GPS + audio → Firebase backend → live Guardian web dashboard.
 
-**Architecture:** Two Android APKs (phone + watch) sharing the same `applicationId` and communicating via the Wear Data Layer. Phone talks to Firebase (Auth, Firestore, Storage) directly via the SDK. Static HTML/JS guardian dashboard hosted on Firebase Hosting subscribes to Firestore in real time. ML inference runs on the watch in TFLite. No custom backend code.
+**Architecture:** Two Android APKs (phone + watch) sharing the same `applicationId` and communicating via the Wear Data Layer. Phone talks to Firebase (Auth, Firestore) directly via the SDK. Static HTML/JS guardian dashboard hosted on Firebase Hosting subscribes to Firestore in real time. ML inference runs on the watch in TFLite. Audio evidence is base64-inlined in the alert doc (Firebase Storage now requires Blaze billing). No custom backend code.
 
 **Tech Stack:** Kotlin, Jetpack Compose + Wear Compose, Material 3, Firebase (Spark/free), TensorFlow Lite for Android, Python + scikit-learn for training, plain HTML/JS + Leaflet + Chart.js for the dashboard.
 
@@ -302,9 +302,7 @@ In Firebase console → Authentication → Sign-in method → Email/Password →
 
 In Firebase console → Firestore Database → Create database → Start in **production mode** → region `asia-south1` (Mumbai). We'll add rules in Phase 2.
 
-- [ ] **Step 6: Create Storage bucket**
-
-In Firebase console → Storage → Get Started → Production mode → same region.
+- [ ] **Step 6: Skip Storage bucket** — Firebase Storage now requires the Blaze (paid) plan for new projects. We work around it by base64-encoding the 30-sec alert audio and writing it inline into the Firestore `alerts/{alertId}` doc (under the 1 MB doc limit at 64 kbps mono AAC). No Storage bucket needs to be created.
 
 - [ ] **Step 7: Add `google-services.json` to gitignore decision**
 
@@ -359,7 +357,7 @@ Append to `[libraries]`:
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
-firebase-storage = { group = "com.google.firebase", name = "firebase-storage-ktx" }
+# firebase-storage skipped — requires Blaze plan; we base64-encode audio into Firestore alert docs instead.
 
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -453,7 +451,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
+    // Firebase Storage SDK omitted — Storage requires Blaze plan for new projects;
+    // we encode audio as base64 directly in the Firestore alert document (~320 KB at 64 kbps mono AAC).
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 
@@ -2575,8 +2574,11 @@ class AudioRecorder(private val context: Context) {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioSamplingRate(44_100)
-            setAudioEncodingBitRate(96_000)
+            // Mono @ 22050 Hz, 64 kbps AAC — keeps a 30-sec clip under ~250 KB raw
+            // (~330 KB base64), well within Firestore's 1 MB single-doc limit.
+            setAudioChannels(1)
+            setAudioSamplingRate(22_050)
+            setAudioEncodingBitRate(64_000)
             setOutputFile(f.absolutePath)
             prepare()
             start()
@@ -2625,7 +2627,7 @@ data class Alert(
     val location: GeoPoint? = null,
     val hrWindow: List<Float> = emptyList(),
     val motionWindow: List<Float> = emptyList(),
-    val audioUrl: String? = null,
+    val audioBase64: String? = null,        // populated after the 30-sec recording finishes
     val contactsNotified: List<String> = emptyList(),
 )
 ```
@@ -2660,17 +2662,14 @@ package com.heysafe.app.data.alerts
 
 interface AlertsBackend {
     suspend fun create(alert: Alert): String
-    suspend fun setAudioUrl(alertId: String, url: String)
+    suspend fun setAudioBase64(alertId: String, base64: String)
     suspend fun resolve(alertId: String)
-    suspend fun uploadAudio(alertId: String, fileBytes: ByteArray): String
 }
 
 class AlertsRepository(private val backend: AlertsBackend) {
     suspend fun create(alert: Alert): Result<String> = runCatching { backend.create(alert) }
-    suspend fun setAudioUrl(alertId: String, url: String) = runCatching { backend.setAudioUrl(alertId, url) }
+    suspend fun setAudioBase64(alertId: String, base64: String) = runCatching { backend.setAudioBase64(alertId, base64) }
     suspend fun resolve(alertId: String) = runCatching { backend.resolve(alertId) }
-    suspend fun uploadAudio(alertId: String, bytes: ByteArray): Result<String> =
-        runCatching { backend.uploadAudio(alertId, bytes) }
 }
 ```
 
@@ -2681,12 +2680,10 @@ package com.heysafe.app.data.alerts
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 
 class FirebaseAlertsBackend(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance(),
 ) : AlertsBackend {
     private val col = db.collection("alerts")
 
@@ -2701,24 +2698,18 @@ class FirebaseAlertsBackend(
             "hrWindow" to alert.hrWindow,
             "motionWindow" to alert.motionWindow,
             "contactsNotified" to alert.contactsNotified,
-            "audioUrl" to alert.audioUrl,
+            "audioBase64" to alert.audioBase64,
         )
         val ref = col.add(data).await()
         return ref.id
     }
 
-    override suspend fun setAudioUrl(alertId: String, url: String) {
-        col.document(alertId).update("audioUrl", url).await()
+    override suspend fun setAudioBase64(alertId: String, base64: String) {
+        col.document(alertId).update("audioBase64", base64).await()
     }
 
     override suspend fun resolve(alertId: String) {
         col.document(alertId).update(mapOf("status" to "resolved", "resolvedAt" to FieldValue.serverTimestamp())).await()
-    }
-
-    override suspend fun uploadAudio(alertId: String, bytes: ByteArray): String {
-        val ref = storage.reference.child("audio/$alertId.m4a")
-        ref.putBytes(bytes).await()
-        return ref.downloadUrl.await().toString()
     }
 }
 ```
@@ -2897,15 +2888,14 @@ class DefaultAlertOrchestrator(
             )
         }
 
-        // 5. Wait 30s, stop audio, upload, patch URL
+        // 5. Wait 30s, stop audio, base64-encode, patch onto alert doc
         scope.launch {
             delay(30_000)
             val file = audioRecorder.stop()
             if (file != null) {
                 val bytes = file.readBytes()
-                alertsRepo.uploadAudio(alertId, bytes).onSuccess { url ->
-                    alertsRepo.setAudioUrl(alertId, url)
-                }
+                val base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                alertsRepo.setAudioBase64(alertId, base64)
             }
         }
     }
@@ -3756,8 +3746,13 @@ function renderActive(alertDoc) {
   }
   if (a.hrWindow?.length) ensureChart(a.hrWindow);
   const audioEl = document.getElementById("audio");
-  if (a.audioUrl) { audioEl.src = a.audioUrl; audioEl.style.display = "block"; }
-  else { audioEl.removeAttribute("src"); audioEl.style.display = "none"; }
+  if (a.audioBase64) {
+    audioEl.src = "data:audio/mp4;base64," + a.audioBase64;
+    audioEl.style.display = "block";
+  } else {
+    audioEl.removeAttribute("src");
+    audioEl.style.display = "none";
+  }
   document.getElementById("resolveBtn").onclick = async () => {
     await updateDoc(doc(db, "alerts", alertDoc.id), { status: "resolved", resolvedAt: serverTimestamp() });
   };
@@ -3789,19 +3784,7 @@ onSnapshot(q, snap => {
 });
 ```
 
-- [ ] **Step 3: Storage CORS (so audio plays in browser)**
-
-User runs once:
-
-```bash
-echo '[{"origin":["*"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json
-gsutil cors set cors.json gs://heysafe-demo.appspot.com
-rm cors.json
-```
-
-Requires `gcloud` / `gsutil` installed. If not installed, fallback: ignore CORS for demo (audio plays after a hard refresh on most browsers).
-
-- [ ] **Step 4: Deploy and test**
+- [ ] **Step 3: Deploy and test**
 
 ```bash
 cd dashboard
@@ -4153,7 +4136,7 @@ Compose long scrollable surface with:
   - "EDA (electrodermal activity) requires hardware (e.g., Empatica E4) the Fossil Gen 5 doesn't expose."
   - "Multi-class threat classification needs labeled assault data, which is ethically unavailable. We use stress-as-proxy from WESAD."
   - "Real police-station integration requires department APIs we don't have access to. The Guardian Dashboard simulates this view."
-  - "Audio is currently uploaded to Firebase Storage. In production this needs end-to-end encryption."
+  - "Audio is currently inlined as base64 in the alert document (Firebase Storage now requires Blaze billing). In production this would move to a dedicated encrypted-blob store with end-to-end encryption."
 - "Research basis" — list 5 references from PPT slide 10
 - "Team" — Tejas Rathi, Harsh, Vinayak Parashar (from PPT slide 1)
 - Sign-out button → `ServiceLocator.authRepository.signOut()` then navigate to Login
