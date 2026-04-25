@@ -1,14 +1,14 @@
-# SakhiSafe MVP Implementation Plan
+# HeySafe MVP Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the SakhiSafe demo end-to-end in 7 days: Wear OS sensor pipeline → on-device heuristic + WESAD-trained TFLite detection → Compose phone app with multi-contact WhatsApp alert + GPS + audio → Firebase backend → live Guardian web dashboard.
+**Goal:** Ship the HeySafe demo end-to-end in 7 days: Wear OS sensor pipeline → on-device heuristic + WESAD-trained TFLite detection → Compose phone app with multi-contact WhatsApp alert + GPS + audio → Firebase backend → live Guardian web dashboard.
 
 **Architecture:** Two Android APKs (phone + watch) sharing the same `applicationId` and communicating via the Wear Data Layer. Phone talks to Firebase (Auth, Firestore, Storage) directly via the SDK. Static HTML/JS guardian dashboard hosted on Firebase Hosting subscribes to Firestore in real time. ML inference runs on the watch in TFLite. No custom backend code.
 
 **Tech Stack:** Kotlin, Jetpack Compose + Wear Compose, Material 3, Firebase (Spark/free), TensorFlow Lite for Android, Python + scikit-learn for training, plain HTML/JS + Leaflet + Chart.js for the dashboard.
 
-**Source spec:** `docs/superpowers/specs/2026-04-25-sakhisafe-mvp-design.md`
+**Source spec:** `docs/superpowers/specs/2026-04-25-heysafe-mvp-design.md`
 
 ---
 
@@ -26,7 +26,7 @@
 
 **No new dependencies without naming the version.** Pin every Gradle artifact in `gradle/libs.versions.toml`.
 
-**Package convention:** `com.sakhisafe.app` (phone), `com.sakhisafe.app.wear` (watch). Both modules share `applicationId = "com.sakhisafe.app"`.
+**Package convention:** `com.heysafe.app` (phone), `com.heysafe.app.wear` (watch). Both modules share `applicationId = "com.heysafe.app"`.
 
 **File-creation rule:** when a task says "create file X", check it doesn't exist first. If it does (e.g., from a partial earlier run), `Read` it and update rather than overwrite.
 
@@ -35,7 +35,7 @@
 ## File Structure (locked)
 
 ```
-SakhiSafe/
+HeySafe/
 ├── phoneapp/                                # was app/
 │   ├── google-services.json                 # Phase 1
 │   └── src/
@@ -47,9 +47,9 @@ SakhiSafe/
 │       │   │   ├── values/strings.xml
 │       │   │   ├── values/themes.xml        # bare M3 parent
 │       │   │   └── drawable/                # logos, splash icon
-│       │   └── java/com/sakhisafe/app/
+│       │   └── java/com/heysafe/app/
 │       │       ├── MainActivity.kt          # single activity host
-│       │       ├── SakhiSafeApp.kt          # @Composable root + NavHost
+│       │       ├── HeySafeApp.kt          # @Composable root + NavHost
 │       │       ├── di/
 │       │       │   └── ServiceLocator.kt    # manual DI (no Hilt)
 │       │       ├── ui/
@@ -74,26 +74,26 @@ SakhiSafe/
 │       │       │   └── audio/AudioRecorder.kt
 │       │       ├── location/LocationProvider.kt
 │       │       └── wear/{WearDataListenerService,WearMessages}.kt
-│       └── test/java/com/sakhisafe/app/     # JVM unit tests
+│       └── test/java/com/heysafe/app/     # JVM unit tests
 │           ├── data/contacts/ContactsRepositoryTest.kt
 │           ├── data/alerts/AlertsRepositoryTest.kt
 │           ├── domain/alert/AlertOrchestratorTest.kt
 │           └── ui/auth/AuthViewModelTest.kt
-├── wearapp/                                 # was sakhisafeapp/
+├── wearapp/                                 # was heysafeapp/
 │   └── src/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
 │       │   ├── assets/
 │       │   │   ├── model.tflite             # Phase 5
 │       │   │   └── feature_scaler.json      # Phase 5
-│       │   └── java/com/sakhisafe/app/wear/
+│       │   └── java/com/heysafe/app/wear/
 │       │       ├── presentation/{MainActivity,SosActivity,AlertActivity}.kt
 │       │       ├── presentation/theme/{Color,Type,Theme}.kt
 │       │       ├── sensors/{HeartRateCollector,MotionCollector,SensorService}.kt
 │       │       ├── detection/{HeuristicDetector,MlDetector,FeatureExtractor,DetectionFusion,DetectorConfig}.kt
 │       │       ├── transport/{DataLayerSender,WearMessages}.kt
 │       │       └── util/RollingWindow.kt
-│       └── test/java/com/sakhisafe/app/wear/
+│       └── test/java/com/heysafe/app/wear/
 │           ├── detection/HeuristicDetectorTest.kt
 │           ├── detection/FeatureExtractorTest.kt
 │           ├── detection/DetectionFusionTest.kt
@@ -118,14 +118,14 @@ SakhiSafe/
 ├── docs/
 │   ├── DEMO_SCRIPT.md                       # Phase 8
 │   └── superpowers/
-│       ├── specs/2026-04-25-sakhisafe-mvp-design.md
-│       └── plans/2026-04-25-sakhisafe-mvp.md
+│       ├── specs/2026-04-25-heysafe-mvp-design.md
+│       └── plans/2026-04-25-heysafe-mvp.md
 ├── design/figma/{Home,SOS,Vitals}.png
-├── settings.gradle.kts                      # Phase 1 — drop sakhisafe/, rename modules
+├── settings.gradle.kts                      # Phase 1 — drop heysafe/, rename modules
 └── gradle/libs.versions.toml                # Phase 1 — pin all versions
 ```
 
-Files **deleted** in Phase 1: entire `sakhisafe/` directory, all old XML layouts under `app/src/main/res/layout/`, all old Java sources under `app/src/main/java/com/example/myapp/`.
+Files **deleted** in Phase 1: entire `heysafe/` directory, all old XML layouts under `app/src/main/res/layout/`, all old Java sources under `app/src/main/java/com/example/myapp/`.
 
 ---
 
@@ -133,31 +133,31 @@ Files **deleted** in Phase 1: entire `sakhisafe/` directory, all old XML layouts
 
 **Outcome:** Clean Gradle build with renamed modules, real package IDs, Firebase initialized, no dead code.
 
-### Task 1.1: Delete the dead `sakhisafe/` module
+### Task 1.1: Delete the dead `heysafe/` module
 
 **Files:**
 - Modify: `settings.gradle.kts`
-- Delete: `sakhisafe/` (entire directory)
+- Delete: `heysafe/` (entire directory)
 
 - [ ] **Step 1: Read current `settings.gradle.kts`**
 
-Run: `Read settings.gradle.kts` — confirm it includes `:sakhisafe`.
+Run: `Read settings.gradle.kts` — confirm it includes `:heysafe`.
 
-- [ ] **Step 2: Remove the `:sakhisafe` include**
+- [ ] **Step 2: Remove the `:heysafe` include**
 
 Edit `settings.gradle.kts`, change:
 
 ```kotlin
 include(":app")
-include(":sakhisafeapp")
+include(":heysafeapp")
 ```
 
-(remove any `include(":sakhisafe")` line if present — current file does not have one, but the `sakhisafe/` directory is still on disk and must go).
+(remove any `include(":heysafe")` line if present — current file does not have one, but the `heysafe/` directory is still on disk and must go).
 
 - [ ] **Step 3: Delete the directory**
 
-Run: `rm -rf sakhisafe/`
-Expected: directory gone; `ls sakhisafe 2>&1` returns "No such file or directory".
+Run: `rm -rf heysafe/`
+Expected: directory gone; `ls heysafe 2>&1` returns "No such file or directory".
 
 - [ ] **Step 4: Sync and build**
 
@@ -167,28 +167,28 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add -A settings.gradle.kts sakhisafe
-git commit -m "phase1: remove dead sakhisafe module"
+git add -A settings.gradle.kts heysafe
+git commit -m "phase1: remove dead heysafe module"
 ```
 
 ### Task 1.2: Rename modules to `phoneapp/` and `wearapp/`
 
 **Files:**
 - Move: `app/` → `phoneapp/`
-- Move: `sakhisafeapp/` → `wearapp/`
+- Move: `heysafeapp/` → `wearapp/`
 - Modify: `settings.gradle.kts`
 
 - [ ] **Step 1: Rename directories via git**
 
-Run: `git mv app phoneapp && git mv sakhisafeapp wearapp`
+Run: `git mv app phoneapp && git mv heysafeapp wearapp`
 Expected: both renames staged.
 
 - [ ] **Step 2: Update `settings.gradle.kts`**
 
-Replace `include(":app")` with `include(":phoneapp")` and `include(":sakhisafeapp")` with `include(":wearapp")`. Keep `rootProject.name = "SakhiSafe"` (rename from `MyApp` here too).
+Replace `include(":app")` with `include(":phoneapp")` and `include(":heysafeapp")` with `include(":wearapp")`. Keep `rootProject.name = "HeySafe"` (rename from `MyApp` here too).
 
 ```kotlin
-rootProject.name = "SakhiSafe"
+rootProject.name = "HeySafe"
 include(":phoneapp")
 include(":wearapp")
 ```
@@ -204,24 +204,24 @@ Expected: BUILD SUCCESSFUL.
 git commit -m "phase1: rename modules to phoneapp and wearapp"
 ```
 
-### Task 1.3: Rename packages to `com.sakhisafe.app`
+### Task 1.3: Rename packages to `com.heysafe.app`
 
 **Files:**
 - Modify: `phoneapp/build.gradle.kts` (`namespace`, `applicationId`)
 - Modify: `wearapp/build.gradle.kts` (`namespace`, `applicationId`)
 - Modify: `phoneapp/src/main/AndroidManifest.xml` (drop hardcoded `com.example.myapp` references; manifest uses `namespace`)
 - Modify: `wearapp/src/main/AndroidManifest.xml`
-- Move: `phoneapp/src/main/java/com/example/myapp/` → `phoneapp/src/main/java/com/sakhisafe/app/`
-- Move: `wearapp/src/main/java/com/example/myapp/` → `wearapp/src/main/java/com/sakhisafe/app/wear/`
+- Move: `phoneapp/src/main/java/com/example/myapp/` → `phoneapp/src/main/java/com/heysafe/app/`
+- Move: `wearapp/src/main/java/com/example/myapp/` → `wearapp/src/main/java/com/heysafe/app/wear/`
 
 - [ ] **Step 1: Move source directories**
 
 ```bash
-mkdir -p phoneapp/src/main/java/com/sakhisafe
-git mv phoneapp/src/main/java/com/example/myapp phoneapp/src/main/java/com/sakhisafe/app
-mkdir -p wearapp/src/main/java/com/sakhisafe/app
-git mv wearapp/src/main/java/com/example/myapp/presentation wearapp/src/main/java/com/sakhisafe/app/wear/presentation
-git mv wearapp/src/main/java/com/example/myapp/ui wearapp/src/main/java/com/sakhisafe/app/wear/ui
+mkdir -p phoneapp/src/main/java/com/heysafe
+git mv phoneapp/src/main/java/com/example/myapp phoneapp/src/main/java/com/heysafe/app
+mkdir -p wearapp/src/main/java/com/heysafe/app
+git mv wearapp/src/main/java/com/example/myapp/presentation wearapp/src/main/java/com/heysafe/app/wear/presentation
+git mv wearapp/src/main/java/com/example/myapp/ui wearapp/src/main/java/com/heysafe/app/wear/ui
 rmdir wearapp/src/main/java/com/example/myapp
 rmdir phoneapp/src/main/java/com/example
 rmdir wearapp/src/main/java/com/example
@@ -229,7 +229,7 @@ rmdir wearapp/src/main/java/com/example
 
 - [ ] **Step 2: Replace package declarations and imports**
 
-In every `.kt` and `.java` file under both modules, replace `package com.example.myapp` with `package com.sakhisafe.app` (phone) or `package com.sakhisafe.app.wear` (watch). Do the same for any `import com.example.myapp.*`.
+In every `.kt` and `.java` file under both modules, replace `package com.example.myapp` with `package com.heysafe.app` (phone) or `package com.heysafe.app.wear` (watch). Do the same for any `import com.example.myapp.*`.
 
 Use Grep to find: `Grep "com.example.myapp" -path phoneapp/ -path wearapp/`
 Use Edit with `replace_all: true` per file.
@@ -238,9 +238,9 @@ Use Edit with `replace_all: true` per file.
 
 ```kotlin
 android {
-    namespace = "com.sakhisafe.app"
+    namespace = "com.heysafe.app"
     defaultConfig {
-        applicationId = "com.sakhisafe.app"
+        applicationId = "com.heysafe.app"
         ...
     }
 }
@@ -250,9 +250,9 @@ android {
 
 ```kotlin
 android {
-    namespace = "com.sakhisafe.app.wear"
+    namespace = "com.heysafe.app.wear"
     defaultConfig {
-        applicationId = "com.sakhisafe.app"   // SHARED with phone for Wear pairing
+        applicationId = "com.heysafe.app"   // SHARED with phone for Wear pairing
         ...
     }
 }
@@ -266,7 +266,7 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 6: Commit**
 
 ```bash
-git commit -m "phase1: rename packages to com.sakhisafe.app"
+git commit -m "phase1: rename packages to com.heysafe.app"
 ```
 
 ### Task 1.4: Create Firebase project and add `google-services.json`
@@ -277,7 +277,7 @@ This is a **manual step the user performs** in the Firebase console; the plan do
 
 In browser: https://console.firebase.google.com/
 - Click "Add project"
-- Name: `sakhisafe-demo`
+- Name: `heysafe-demo`
 - Disable Google Analytics (not needed)
 - Select Spark plan when prompted
 
@@ -285,8 +285,8 @@ In browser: https://console.firebase.google.com/
 
 In project dashboard:
 - Click "Add app" → Android
-- Package name: `com.sakhisafe.app`
-- Nickname: `SakhiSafe Phone`
+- Package name: `com.heysafe.app`
+- Nickname: `HeySafe Phone`
 - SHA-1: skip for now (only needed for Google Sign-In, which we're not using)
 - Download `google-services.json`
 
@@ -408,11 +408,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sakhisafe.app"
+    namespace = "com.heysafe.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sakhisafe.app"
+        applicationId = "com.heysafe.app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -478,25 +478,25 @@ git commit -m "phase1: wire firebase + compose dependencies"
 ### Task 1.6: Smoke-test Firebase initialization
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/MainActivity.kt` (replaces Java MainActivity)
+- Create: `phoneapp/src/main/java/com/heysafe/app/MainActivity.kt` (replaces Java MainActivity)
 
 - [ ] **Step 1: Delete the old Java sources**
 
 ```bash
-git rm phoneapp/src/main/java/com/sakhisafe/app/MainActivity.java
-git rm phoneapp/src/main/java/com/sakhisafe/app/HomeActivity.java
-git rm phoneapp/src/main/java/com/sakhisafe/app/RegisterActivity.java
-git rm -r phoneapp/src/main/java/com/sakhisafe/app/data
+git rm phoneapp/src/main/java/com/heysafe/app/MainActivity.java
+git rm phoneapp/src/main/java/com/heysafe/app/HomeActivity.java
+git rm phoneapp/src/main/java/com/heysafe/app/RegisterActivity.java
+git rm -r phoneapp/src/main/java/com/heysafe/app/data
 git rm -r phoneapp/src/main/res/layout
 git rm -r phoneapp/src/main/res/menu phoneapp/src/main/res/navigation 2>/dev/null || true
 ```
 
 - [ ] **Step 2: Create the placeholder Kotlin MainActivity**
 
-Write `phoneapp/src/main/java/com/sakhisafe/app/MainActivity.kt`:
+Write `phoneapp/src/main/java/com/heysafe/app/MainActivity.kt`:
 
 ```kotlin
-package com.sakhisafe.app
+package com.heysafe.app
 
 import android.os.Bundle
 import android.util.Log
@@ -513,11 +513,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = FirebaseApp.getInstance()
-        Log.d("SakhiSafe", "Firebase initialized: ${app.name} / ${app.options.projectId}")
+        Log.d("HeySafe", "Firebase initialized: ${app.name} / ${app.options.projectId}")
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Text("SakhiSafe — Phase 1 OK")
+                    Text("HeySafe — Phase 1 OK")
                 }
             }
         }
@@ -543,12 +543,12 @@ Replace `phoneapp/src/main/AndroidManifest.xml` with:
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SakhiSafe"
+        android:theme="@style/Theme.HeySafe"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.SakhiSafe">
+            android:theme="@style/Theme.HeySafe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -558,27 +558,27 @@ Replace `phoneapp/src/main/AndroidManifest.xml` with:
 </manifest>
 ```
 
-- [ ] **Step 4: Provide `Theme.SakhiSafe` parent style**
+- [ ] **Step 4: Provide `Theme.HeySafe` parent style**
 
 Replace `phoneapp/src/main/res/values/themes.xml`:
 
 ```xml
 <resources>
-    <style name="Theme.SakhiSafe" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.HeySafe" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
 ```
 
-Update `phoneapp/src/main/res/values/strings.xml` so `app_name` is `SakhiSafe`.
+Update `phoneapp/src/main/res/values/strings.xml` so `app_name` is `HeySafe`.
 
 - [ ] **Step 5: Build, install, run**
 
 ```bash
 ./gradlew :phoneapp:installDebug --no-daemon
-adb shell am start -n com.sakhisafe.app/.MainActivity
-adb logcat -d -s SakhiSafe
+adb shell am start -n com.heysafe.app/.MainActivity
+adb logcat -d -s HeySafe
 ```
 
-Expected: logcat shows `Firebase initialized: [DEFAULT] / sakhisafe-demo` (or your project ID). Screen shows "SakhiSafe — Phase 1 OK".
+Expected: logcat shows `Firebase initialized: [DEFAULT] / heysafe-demo` (or your project ID). Screen shows "HeySafe — Phase 1 OK".
 
 - [ ] **Step 6: Commit**
 
@@ -597,10 +597,10 @@ git commit -m "phase1: bootstrap kotlin MainActivity with firebase init smoke te
 
 **Files:**
 - Create: `phoneapp/src/main/res/font/inter.ttf` (manual download)
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/theme/Color.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/theme/Type.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/theme/Shape.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/theme/Theme.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/theme/Color.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/theme/Type.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/theme/Shape.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/theme/Theme.kt`
 
 - [ ] **Step 1: Download Inter Variable**
 
@@ -609,7 +609,7 @@ User action: download `Inter-VariableFont_opsz,wght.ttf` from https://rsms.me/in
 - [ ] **Step 2: Create `Color.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.theme
+package com.heysafe.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -629,7 +629,7 @@ val ErrorRed = Color(0xFFFF3B30)
 - [ ] **Step 3: Create `Type.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.theme
+package com.heysafe.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
@@ -637,11 +637,11 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.sakhisafe.app.R
+import com.heysafe.app.R
 
 val Inter = FontFamily(Font(R.font.inter))
 
-val SakhiTypography = Typography(
+val HeyTypography = Typography(
     displayLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 48.sp),
     headlineLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Bold, fontSize = 24.sp),
     headlineMedium = TextStyle(fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 18.sp),
@@ -654,13 +654,13 @@ val SakhiTypography = Typography(
 - [ ] **Step 4: Create `Shape.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.theme
+package com.heysafe.app.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-val SakhiShapes = Shapes(
+val HeyShapes = Shapes(
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(20.dp),
@@ -670,13 +670,13 @@ val SakhiShapes = Shapes(
 - [ ] **Step 5: Create `Theme.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.theme
+package com.heysafe.app.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-private val SakhiColors = lightColorScheme(
+private val HeyColors = lightColorScheme(
     primary = Primary,
     onPrimary = SurfaceWhite,
     secondary = Accent,
@@ -688,11 +688,11 @@ private val SakhiColors = lightColorScheme(
 )
 
 @Composable
-fun SakhiSafeTheme(content: @Composable () -> Unit) {
+fun HeySafeTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = SakhiColors,
-        typography = SakhiTypography,
-        shapes = SakhiShapes,
+        colorScheme = HeyColors,
+        typography = HeyTypography,
+        shapes = HeyShapes,
         content = content,
     )
 }
@@ -709,17 +709,17 @@ git commit -m "phase1.5: add design tokens and inter font"
 ### Task 1.5.2: Create navigation routes and `NavGraph`
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/nav/Routes.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/nav/NavGraph.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/nav/BottomNavBar.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/SakhiSafeApp.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/nav/Routes.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/nav/NavGraph.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/nav/BottomNavBar.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/HeySafeApp.kt`
 
 - [ ] **Step 1: Define routes**
 
 `Routes.kt`:
 
 ```kotlin
-package com.sakhisafe.app.ui.nav
+package com.heysafe.app.ui.nav
 
 object Routes {
     const val Splash = "splash"
@@ -741,7 +741,7 @@ object Routes {
 For each of: `splash`, `auth/LoginScreen`, `auth/RegisterScreen`, `home/HomeScreen`, `vitals/VitalsScreen`, `contacts/ContactsScreen`, `contacts/AddContactScreen`, `help/HelpScreen`, `about/AboutScreen`, `alert/ActiveAlertScreen` — create a one-line placeholder Composable like:
 
 ```kotlin
-package com.sakhisafe.app.ui.home
+package com.heysafe.app.ui.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -760,7 +760,7 @@ fun HomeScreen() {
 - [ ] **Step 3: Create `BottomNavBar.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.nav
+package com.heysafe.app.ui.nav
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
@@ -812,25 +812,25 @@ fun BottomNavBar(navController: NavHostController) {
 - [ ] **Step 4: Create `NavGraph.kt`**
 
 ```kotlin
-package com.sakhisafe.app.ui.nav
+package com.heysafe.app.ui.nav
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.sakhisafe.app.ui.about.AboutScreen
-import com.sakhisafe.app.ui.alert.ActiveAlertScreen
-import com.sakhisafe.app.ui.auth.LoginScreen
-import com.sakhisafe.app.ui.auth.RegisterScreen
-import com.sakhisafe.app.ui.contacts.AddContactScreen
-import com.sakhisafe.app.ui.contacts.ContactsScreen
-import com.sakhisafe.app.ui.help.HelpScreen
-import com.sakhisafe.app.ui.home.HomeScreen
-import com.sakhisafe.app.ui.splash.SplashScreen
-import com.sakhisafe.app.ui.vitals.VitalsScreen
+import com.heysafe.app.ui.about.AboutScreen
+import com.heysafe.app.ui.alert.ActiveAlertScreen
+import com.heysafe.app.ui.auth.LoginScreen
+import com.heysafe.app.ui.auth.RegisterScreen
+import com.heysafe.app.ui.contacts.AddContactScreen
+import com.heysafe.app.ui.contacts.ContactsScreen
+import com.heysafe.app.ui.help.HelpScreen
+import com.heysafe.app.ui.home.HomeScreen
+import com.heysafe.app.ui.splash.SplashScreen
+import com.heysafe.app.ui.vitals.VitalsScreen
 
 @Composable
-fun SakhiNavGraph(navController: NavHostController, startDestination: String) {
+fun HeyNavGraph(navController: NavHostController, startDestination: String) {
     NavHost(navController, startDestination = startDestination) {
         composable(Routes.Splash) { SplashScreen() }
         composable(Routes.Login) { LoginScreen() }
@@ -846,10 +846,10 @@ fun SakhiNavGraph(navController: NavHostController, startDestination: String) {
 }
 ```
 
-- [ ] **Step 5: Create `SakhiSafeApp.kt` (root composable)**
+- [ ] **Step 5: Create `HeySafeApp.kt` (root composable)**
 
 ```kotlin
-package com.sakhisafe.app
+package com.heysafe.app
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -858,18 +858,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.sakhisafe.app.ui.nav.BottomNavBar
-import com.sakhisafe.app.ui.nav.Routes
-import com.sakhisafe.app.ui.nav.SakhiNavGraph
-import com.sakhisafe.app.ui.theme.SakhiSafeTheme
+import com.heysafe.app.ui.nav.BottomNavBar
+import com.heysafe.app.ui.nav.Routes
+import com.heysafe.app.ui.nav.HeyNavGraph
+import com.heysafe.app.ui.theme.HeySafeTheme
 
 private val ROUTES_WITH_BOTTOM_NAV = setOf(
     Routes.Home, Routes.Vitals, Routes.Help, Routes.About
 )
 
 @Composable
-fun SakhiSafeApp(startDestination: String = Routes.Splash) {
-    SakhiSafeTheme {
+fun HeySafeApp(startDestination: String = Routes.Splash) {
+    HeySafeTheme {
         val navController = rememberNavController()
         val backStack by navController.currentBackStackEntryAsState()
         val showBar = backStack?.destination?.route in ROUTES_WITH_BOTTOM_NAV
@@ -877,7 +877,7 @@ fun SakhiSafeApp(startDestination: String = Routes.Splash) {
             bottomBar = { if (showBar) BottomNavBar(navController) }
         ) { padding ->
             androidx.compose.foundation.layout.Box(Modifier.padding(padding)) {
-                SakhiNavGraph(navController, startDestination)
+                HeyNavGraph(navController, startDestination)
             }
         }
     }
@@ -886,10 +886,10 @@ fun SakhiSafeApp(startDestination: String = Routes.Splash) {
 
 - [ ] **Step 6: Update `MainActivity.kt`**
 
-Replace contents to host `SakhiSafeApp`:
+Replace contents to host `HeySafeApp`:
 
 ```kotlin
-package com.sakhisafe.app
+package com.heysafe.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -898,7 +898,7 @@ import androidx.activity.compose.setContent
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { SakhiSafeApp() }
+        setContent { HeySafeApp() }
     }
 }
 ```
@@ -907,7 +907,7 @@ class MainActivity : ComponentActivity() {
 
 ```bash
 ./gradlew :phoneapp:installDebug --no-daemon
-adb shell am start -n com.sakhisafe.app/.MainActivity
+adb shell am start -n com.heysafe.app/.MainActivity
 ```
 
 Expected: app launches into Splash placeholder (no bottom bar). The remaining placeholders are reachable in code but not yet wired to a navigation flow — Phase 2 wires Splash → Login → Home.
@@ -966,7 +966,7 @@ service cloud.firestore {
 
 User runs (one-time, requires `npm i -g firebase-tools` + `firebase login`):
 ```bash
-firebase use sakhisafe-demo
+firebase use heysafe-demo
 firebase deploy --only firestore:rules
 ```
 
@@ -982,8 +982,8 @@ git commit -m "phase2: add firestore security rules"
 ### Task 2.2: `AuthRepository` (TDD)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/auth/AuthRepository.kt`
-- Create: `phoneapp/src/test/java/com/sakhisafe/app/data/auth/AuthRepositoryTest.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/auth/AuthRepository.kt`
+- Create: `phoneapp/src/test/java/com/heysafe/app/data/auth/AuthRepositoryTest.kt`
 
 `AuthRepository` is a thin wrapper over `FirebaseAuth`. We test it with a fake `FirebaseAuth` interface — define our own minimal interface so tests don't need Firebase to be initialized.
 
@@ -992,7 +992,7 @@ git commit -m "phase2: add firestore security rules"
 `AuthRepositoryTest.kt`:
 
 ```kotlin
-package com.sakhisafe.app.data.auth
+package com.heysafe.app.data.auth
 
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -1044,7 +1044,7 @@ Expected: COMPILATION fails (`AuthBackend`, `AuthUser`, `AuthResult`, `AuthRepos
 `AuthRepository.kt`:
 
 ```kotlin
-package com.sakhisafe.app.data.auth
+package com.heysafe.app.data.auth
 
 data class AuthUser(val uid: String, val email: String)
 
@@ -1081,10 +1081,10 @@ Expected: 3 tests passed.
 
 - [ ] **Step 5: Implement `FirebaseAuthBackend`**
 
-Create `phoneapp/src/main/java/com/sakhisafe/app/data/auth/FirebaseAuthBackend.kt`:
+Create `phoneapp/src/main/java/com/heysafe/app/data/auth/FirebaseAuthBackend.kt`:
 
 ```kotlin
-package com.sakhisafe.app.data.auth
+package com.heysafe.app.data.auth
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -1121,16 +1121,16 @@ git commit -m "phase2: add auth repository with firebase backend"
 ### Task 2.3: `ServiceLocator` (manual DI)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/di/ServiceLocator.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/di/ServiceLocator.kt`
 
 - [ ] **Step 1: Create `ServiceLocator.kt`**
 
 ```kotlin
-package com.sakhisafe.app.di
+package com.heysafe.app.di
 
 import android.content.Context
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.auth.FirebaseAuthBackend
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.auth.FirebaseAuthBackend
 
 object ServiceLocator {
     @Volatile private var initialized = false
@@ -1149,15 +1149,15 @@ object ServiceLocator {
 
 - [ ] **Step 2: Initialize in a custom `Application`**
 
-Create `phoneapp/src/main/java/com/sakhisafe/app/SakhiApplication.kt`:
+Create `phoneapp/src/main/java/com/heysafe/app/HeySafeApplication.kt`:
 
 ```kotlin
-package com.sakhisafe.app
+package com.heysafe.app
 
 import android.app.Application
-import com.sakhisafe.app.di.ServiceLocator
+import com.heysafe.app.di.ServiceLocator
 
-class SakhiApplication : Application() {
+class HeySafeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ServiceLocator.init(this)
@@ -1168,7 +1168,7 @@ class SakhiApplication : Application() {
 Register in `AndroidManifest.xml`:
 ```xml
 <application
-    android:name=".SakhiApplication"
+    android:name=".HeySafeApplication"
     ...>
 ```
 
@@ -1183,17 +1183,17 @@ git commit -m "phase2: add service locator and application class"
 ### Task 2.4: `AuthViewModel` (TDD)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/auth/AuthViewModel.kt`
-- Create: `phoneapp/src/test/java/com/sakhisafe/app/ui/auth/AuthViewModelTest.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/auth/AuthViewModel.kt`
+- Create: `phoneapp/src/test/java/com/heysafe/app/ui/auth/AuthViewModelTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
 ```kotlin
-package com.sakhisafe.app.ui.auth
+package com.heysafe.app.ui.auth
 
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.auth.AuthResult
-import com.sakhisafe.app.data.auth.AuthUser
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.auth.AuthResult
+import com.heysafe.app.data.auth.AuthUser
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -1236,13 +1236,13 @@ class AuthViewModelTest {
 - [ ] **Step 2: Implement `AuthViewModel`**
 
 ```kotlin
-package com.sakhisafe.app.ui.auth
+package com.heysafe.app.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.auth.AuthResult
-import com.sakhisafe.app.data.auth.AuthUser
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.auth.AuthResult
+import com.heysafe.app.data.auth.AuthUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -1291,16 +1291,16 @@ git commit -m "phase2: add AuthViewModel"
 ### Task 2.5: `LoginScreen` and `RegisterScreen` UI
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/auth/LoginScreen.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/auth/RegisterScreen.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/nav/NavGraph.kt` (wire VM + nav)
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/auth/LoginScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/auth/RegisterScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/nav/NavGraph.kt` (wire VM + nav)
 
 - [ ] **Step 1: Implement `LoginScreen`**
 
 Match existing `images/Login.png` aesthetic upgraded with the new design tokens. White surface, large heading "Welcome back", subtext "Sign in to continue", email field, password field, "Sign in" red CTA, "New here? Register" textbutton at bottom.
 
 ```kotlin
-package com.sakhisafe.app.ui.auth
+package com.heysafe.app.ui.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -1313,7 +1313,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakhisafe.app.di.ServiceLocator
+import com.heysafe.app.di.ServiceLocator
 
 @Composable
 fun LoginScreen(
@@ -1363,7 +1363,7 @@ fun LoginScreen(
 
 - [ ] **Step 2: Implement `RegisterScreen`**
 
-Same skeleton with extra "Display name" field and `vm.signUp(email, password, name)`. Title "Create account", subtitle "Stay safe with SakhiSafe", CTA "Create account", footer "Have an account? Sign in".
+Same skeleton with extra "Display name" field and `vm.signUp(email, password, name)`. Title "Create account", subtitle "Stay safe with HeySafe", CTA "Create account", footer "Have an account? Sign in".
 
 - [ ] **Step 3: Update `NavGraph` to pass nav callbacks**
 
@@ -1387,7 +1387,7 @@ Update `RegisterScreen` signature to accept `onRegistered` and `onGoBack`.
 - [ ] **Step 4: Wire SplashScreen to route by auth state**
 
 ```kotlin
-package com.sakhisafe.app.ui.splash
+package com.heysafe.app.ui.splash
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -1397,7 +1397,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.sakhisafe.app.di.ServiceLocator
+import com.heysafe.app.di.ServiceLocator
 
 @Composable
 fun SplashScreen(onAuthenticated: () -> Unit, onUnauthenticated: () -> Unit) {
@@ -1424,7 +1424,7 @@ composable(Routes.Splash) {
 
 ```bash
 ./gradlew :phoneapp:installDebug --no-daemon
-adb shell am start -n com.sakhisafe.app/.MainActivity
+adb shell am start -n com.heysafe.app/.MainActivity
 ```
 
 Expected: Splash spinner → Login. Tap "Create account" → Register. Submit Register with `test@example.com` / `password123` / "Karan" → Home placeholder. Force-stop app, relaunch → Splash → Home (auth persists).
@@ -1441,14 +1441,14 @@ git commit -m "phase2: implement login and register screens"
 ### Task 2.6: `Contact` model + `ContactsRepository` (TDD)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/contacts/Contact.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/contacts/ContactsRepository.kt`
-- Create: `phoneapp/src/test/java/com/sakhisafe/app/data/contacts/ContactsRepositoryTest.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/contacts/Contact.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/contacts/ContactsRepository.kt`
+- Create: `phoneapp/src/test/java/com/heysafe/app/data/contacts/ContactsRepositoryTest.kt`
 
 - [ ] **Step 1: Define model**
 
 ```kotlin
-package com.sakhisafe.app.data.contacts
+package com.heysafe.app.data.contacts
 
 data class Contact(
     val id: String = "",
@@ -1470,7 +1470,7 @@ enum class ContactGroup { FAMILY, FRIENDS;
 - [ ] **Step 2: Define backend interface and write tests**
 
 ```kotlin
-package com.sakhisafe.app.data.contacts
+package com.heysafe.app.data.contacts
 
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -1504,7 +1504,7 @@ class ContactsRepositoryTest {
 - [ ] **Step 3: Implement repository**
 
 ```kotlin
-package com.sakhisafe.app.data.contacts
+package com.heysafe.app.data.contacts
 
 import kotlinx.coroutines.flow.Flow
 
@@ -1531,7 +1531,7 @@ class ContactsRepository(private val backend: ContactsBackend) {
 - [ ] **Step 4: Implement `FirestoreContactsBackend`**
 
 ```kotlin
-package com.sakhisafe.app.data.contacts
+package com.heysafe.app.data.contacts
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.snapshots
@@ -1595,21 +1595,21 @@ git commit -m "phase2: add contacts repository"
 ### Task 2.7: `ContactsScreen` (Family/Friends tabs) + `AddContactScreen`
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/contacts/ContactsScreen.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/contacts/AddContactScreen.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/contacts/ContactsViewModel.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/components/Avatar.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/contacts/ContactsScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/contacts/AddContactScreen.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/contacts/ContactsViewModel.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/components/Avatar.kt`
 
 - [ ] **Step 1: `ContactsViewModel`**
 
 ```kotlin
-package com.sakhisafe.app.ui.contacts
+package com.heysafe.app.ui.contacts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.contacts.Contact
-import com.sakhisafe.app.data.contacts.ContactsRepository
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.contacts.Contact
+import com.heysafe.app.data.contacts.ContactsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -1637,7 +1637,7 @@ class ContactsViewModel(
 - [ ] **Step 2: `Avatar.kt` (initials in colored circle)**
 
 ```kotlin
-package com.sakhisafe.app.ui.components
+package com.heysafe.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -1709,15 +1709,15 @@ git commit -m "phase2: contacts screen with family/friends tabs"
 ### Task 3.1: Shared `WearMessages` schema
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/transport/WearMessages.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/wear/WearMessages.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/transport/WearMessages.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/wear/WearMessages.kt`
 
 Both files must define identical constants/keys (manual mirror — no shared module to keep gradle simple).
 
 - [ ] **Step 1: Define schema in both modules (identical)**
 
 ```kotlin
-package com.sakhisafe.app.wear  // or .wear.transport on watch side
+package com.heysafe.app.wear  // or .wear.transport on watch side
 
 object WearMessages {
     const val PATH_VITALS = "/vitals/sample"
@@ -1750,13 +1750,13 @@ git commit -m "phase3: shared wear messages schema"
 ### Task 3.2: `RollingWindow` utility (TDD)
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/util/RollingWindow.kt`
-- Create: `wearapp/src/test/java/com/sakhisafe/app/wear/util/RollingWindowTest.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/util/RollingWindow.kt`
+- Create: `wearapp/src/test/java/com/heysafe/app/wear/util/RollingWindowTest.kt`
 
 - [ ] **Step 1: Tests**
 
 ```kotlin
-package com.sakhisafe.app.wear.util
+package com.heysafe.app.wear.util
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -1785,7 +1785,7 @@ class RollingWindowTest {
 - [ ] **Step 2: Implement `RollingWindow`**
 
 ```kotlin
-package com.sakhisafe.app.wear.util
+package com.heysafe.app.wear.util
 
 class RollingWindow(private val capacity: Int) {
     private val buf = ArrayDeque<Float>(capacity)
@@ -1822,13 +1822,13 @@ git commit -m "phase3: add rolling window utility"
 ### Task 3.3: `HeartRateCollector` and `MotionCollector`
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/sensors/HeartRateCollector.kt`
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/sensors/MotionCollector.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/sensors/HeartRateCollector.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/sensors/MotionCollector.kt`
 
 - [ ] **Step 1: `HeartRateCollector`**
 
 ```kotlin
-package com.sakhisafe.app.wear.sensors
+package com.heysafe.app.wear.sensors
 
 import android.content.Context
 import android.hardware.Sensor
@@ -1858,7 +1858,7 @@ class HeartRateCollector(context: Context) {
 - [ ] **Step 2: `MotionCollector`**
 
 ```kotlin
-package com.sakhisafe.app.wear.sensors
+package com.heysafe.app.wear.sensors
 
 import android.content.Context
 import android.hardware.Sensor
@@ -1903,14 +1903,14 @@ git commit -m "phase3: heart rate and motion collectors"
 ### Task 3.4: `SensorService` (foreground service) + `DataLayerSender`
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/sensors/SensorService.kt`
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/transport/DataLayerSender.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/sensors/SensorService.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/transport/DataLayerSender.kt`
 - Modify: `wearapp/src/main/AndroidManifest.xml`
 
 - [ ] **Step 1: `DataLayerSender`**
 
 ```kotlin
-package com.sakhisafe.app.wear.transport
+package com.heysafe.app.wear.transport
 
 import android.content.Context
 import com.google.android.gms.wearable.PutDataMapRequest
@@ -1952,7 +1952,7 @@ class DataLayerSender(context: Context) {
 - [ ] **Step 2: `SensorService` (foreground)**
 
 ```kotlin
-package com.sakhisafe.app.wear.sensors
+package com.heysafe.app.wear.sensors
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -1960,8 +1960,8 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import com.sakhisafe.app.wear.transport.DataLayerSender
-import com.sakhisafe.app.wear.util.RollingWindow
+import com.heysafe.app.wear.transport.DataLayerSender
+import com.heysafe.app.wear.util.RollingWindow
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -2000,10 +2000,10 @@ class SensorService : Service() {
 
     private fun buildNotification(): Notification {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val ch = NotificationChannel(CHANNEL_ID, "SakhiSafe sensors", NotificationManager.IMPORTANCE_LOW)
+        val ch = NotificationChannel(CHANNEL_ID, "HeySafe sensors", NotificationManager.IMPORTANCE_LOW)
         nm.createNotificationChannel(ch)
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("SakhiSafe is monitoring")
+            .setContentTitle("HeySafe is monitoring")
             .setContentText("Heart rate and motion are being tracked")
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
@@ -2011,7 +2011,7 @@ class SensorService : Service() {
     }
 
     companion object {
-        const val CHANNEL_ID = "sakhi_sensors"
+        const val CHANNEL_ID = "heysafe_sensors"
         const val NOTIF_ID = 42
     }
 }
@@ -2052,8 +2052,8 @@ ContextCompat.startForegroundService(this, Intent(this, SensorService::class.jav
 
 ```bash
 ./gradlew :wearapp:installDebug --no-daemon
-adb -s <watch_serial> shell am start -n com.sakhisafe.app/.wear.presentation.MainActivity
-adb -s <watch_serial> logcat | grep -E "SakhiSafe|Wearable"
+adb -s <watch_serial> shell am start -n com.heysafe.app/.wear.presentation.MainActivity
+adb -s <watch_serial> logcat | grep -E "HeySafe|Wearable"
 ```
 
 Wear watch on wrist → log every second a vitals putDataItem. (We'll verify on phone in next task.)
@@ -2068,15 +2068,15 @@ git commit -m "phase3: sensor service streaming vitals via data layer"
 ### Task 3.5: Phone `WearDataListenerService` + `VitalsRepository`
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/vitals/VitalsRepository.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/wear/WearDataListenerService.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/vitals/VitalsRepository.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/wear/WearDataListenerService.kt`
 - Modify: `phoneapp/src/main/AndroidManifest.xml`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/di/ServiceLocator.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/di/ServiceLocator.kt`
 
 - [ ] **Step 1: `VitalsRepository` (singleton holding latest sample)**
 
 ```kotlin
-package com.sakhisafe.app.data.vitals
+package com.heysafe.app.data.vitals
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -2100,14 +2100,14 @@ class VitalsRepository {
 - [ ] **Step 2: `WearDataListenerService`**
 
 ```kotlin
-package com.sakhisafe.app.wear
+package com.heysafe.app.wear
 
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
-import com.sakhisafe.app.data.vitals.VitalsSample
-import com.sakhisafe.app.di.ServiceLocator
+import com.heysafe.app.data.vitals.VitalsSample
+import com.heysafe.app.di.ServiceLocator
 
 class WearDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -2179,15 +2179,15 @@ git commit -m "phase3: wear data listener and vitals repository"
 ### Task 3.6: `VitalsScreen` with live HR + ECG line
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/vitals/VitalsScreen.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/vitals/VitalsViewModel.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/vitals/EcgLine.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/components/DarkGradientCard.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/vitals/VitalsScreen.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/vitals/VitalsViewModel.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/vitals/EcgLine.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/components/DarkGradientCard.kt`
 
 - [ ] **Step 1: `DarkGradientCard` reusable**
 
 ```kotlin
-package com.sakhisafe.app.ui.components
+package com.heysafe.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -2197,8 +2197,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
-import com.sakhisafe.app.ui.theme.SurfaceDarkBot
-import com.sakhisafe.app.ui.theme.SurfaceDarkTop
+import com.heysafe.app.ui.theme.SurfaceDarkBot
+import com.heysafe.app.ui.theme.SurfaceDarkTop
 
 @Composable
 fun DarkGradientCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
@@ -2213,7 +2213,7 @@ fun DarkGradientCard(modifier: Modifier = Modifier, content: @Composable () -> U
 - [ ] **Step 2: `EcgLine` Composable (Canvas-drawn)**
 
 ```kotlin
-package com.sakhisafe.app.ui.vitals
+package com.heysafe.app.ui.vitals
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
@@ -2245,10 +2245,10 @@ fun EcgLine(samples: List<Float>, modifier: Modifier = Modifier, color: Color = 
 - [ ] **Step 3: `VitalsViewModel`**
 
 ```kotlin
-package com.sakhisafe.app.ui.vitals
+package com.heysafe.app.ui.vitals
 
 import androidx.lifecycle.ViewModel
-import com.sakhisafe.app.data.vitals.VitalsRepository
+import com.heysafe.app.data.vitals.VitalsRepository
 
 class VitalsViewModel(private val repo: VitalsRepository) : ViewModel() {
     val latest = repo.latest
@@ -2261,7 +2261,7 @@ class VitalsViewModel(private val repo: VitalsRepository) : ViewModel() {
 Replace placeholder. Top section: white surface with avatar + "Hi, {name}" + bell. "My Devices" section: card listing Fossil Gen 5 with green dot if `latest.value != null`. Bottom: `DarkGradientCard` containing big "{hr.toInt()} BPM" right-aligned (display style) and `EcgLine(history.map { it.hr })` filling the card width below.
 
 ```kotlin
-package com.sakhisafe.app.ui.vitals
+package com.heysafe.app.ui.vitals
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -2272,8 +2272,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sakhisafe.app.di.ServiceLocator
-import com.sakhisafe.app.ui.components.DarkGradientCard
+import com.heysafe.app.di.ServiceLocator
+import com.heysafe.app.ui.components.DarkGradientCard
 
 @Composable
 fun VitalsScreen(vm: VitalsViewModel = viewModel { VitalsViewModel(ServiceLocator.vitalsRepository) }) {
@@ -2331,14 +2331,14 @@ git commit -m "phase3: vitals screen with live HR and ECG line"
 ### Task 4.1: `DetectorConfig` + `HeuristicDetector` (TDD)
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/detection/DetectorConfig.kt`
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/detection/HeuristicDetector.kt`
-- Create: `wearapp/src/test/java/com/sakhisafe/app/wear/detection/HeuristicDetectorTest.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/detection/DetectorConfig.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/detection/HeuristicDetector.kt`
+- Create: `wearapp/src/test/java/com/heysafe/app/wear/detection/HeuristicDetectorTest.kt`
 
 - [ ] **Step 1: Config**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 data class DetectorConfig(
     val hrSpikeBpm: Float = 30f,           // hr - baseline must exceed this
@@ -2350,7 +2350,7 @@ data class DetectorConfig(
 - [ ] **Step 2: Tests**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -2390,7 +2390,7 @@ class HeuristicDetectorTest {
 - [ ] **Step 3: Implement**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 class HeuristicDetector(private val cfg: DetectorConfig) {
     private var streakStartTs: Long = -1L
@@ -2423,7 +2423,7 @@ git commit -m "phase4: heuristic detector"
 ### Task 4.2: Wire detector into `SensorService`
 
 **Files:**
-- Modify: `wearapp/src/main/java/com/sakhisafe/app/wear/sensors/SensorService.kt`
+- Modify: `wearapp/src/main/java/com/heysafe/app/wear/sensors/SensorService.kt`
 
 - [ ] **Step 1: Add detector field and feed it**
 
@@ -2444,7 +2444,7 @@ scope.launch {
         if (detector.fired) {
             detector.reset()
             // Launch the existing SosActivity countdown
-            val i = Intent(this@SensorService, com.sakhisafe.app.wear.presentation.SosActivity::class.java)
+            val i = Intent(this@SensorService, com.heysafe.app.wear.presentation.SosActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra("triggerSource", WearMessages.SOURCE_HEURISTIC)
                 .putExtra("hrWindow", hrWindow.snapshot().toFloatArray())
@@ -2466,7 +2466,7 @@ git commit -m "phase4: wire heuristic detector into sensor service"
 ### Task 4.3: Update `SosActivity` to send confirm/cancel
 
 **Files:**
-- Modify: `wearapp/src/main/java/com/sakhisafe/app/wear/presentation/SosActivity.kt`
+- Modify: `wearapp/src/main/java/com/heysafe/app/wear/presentation/SosActivity.kt`
 
 - [ ] **Step 1: Read current file, then refactor**
 
@@ -2516,8 +2516,8 @@ git commit -m "phase4: send alert confirm/cancel from sos activity"
 ### Task 4.4: Phone — `LocationProvider` + `AudioRecorder`
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/location/LocationProvider.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/domain/audio/AudioRecorder.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/location/LocationProvider.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/domain/audio/AudioRecorder.kt`
 - Modify: `phoneapp/src/main/AndroidManifest.xml` (permissions)
 
 - [ ] **Step 1: Manifest permissions**
@@ -2533,7 +2533,7 @@ Add to `phoneapp/src/main/AndroidManifest.xml`:
 - [ ] **Step 2: `LocationProvider`**
 
 ```kotlin
-package com.sakhisafe.app.location
+package com.heysafe.app.location
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -2557,7 +2557,7 @@ class LocationProvider(context: Context) {
 - [ ] **Step 3: `AudioRecorder`**
 
 ```kotlin
-package com.sakhisafe.app.domain.audio
+package com.heysafe.app.domain.audio
 
 import android.content.Context
 import android.media.MediaRecorder
@@ -2604,14 +2604,14 @@ git commit -m "phase4: location provider and audio recorder"
 ### Task 4.5: `Alert` model + `AlertsRepository` (TDD)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/alerts/Alert.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/data/alerts/AlertsRepository.kt`
-- Create: `phoneapp/src/test/java/com/sakhisafe/app/data/alerts/AlertsRepositoryTest.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/alerts/Alert.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/data/alerts/AlertsRepository.kt`
+- Create: `phoneapp/src/test/java/com/heysafe/app/data/alerts/AlertsRepositoryTest.kt`
 
 - [ ] **Step 1: `Alert` model**
 
 ```kotlin
-package com.sakhisafe.app.data.alerts
+package com.heysafe.app.data.alerts
 
 data class GeoPoint(val lat: Double, val lng: Double, val accuracy: Float)
 
@@ -2633,7 +2633,7 @@ data class Alert(
 - [ ] **Step 2: Backend interface + tests**
 
 ```kotlin
-package com.sakhisafe.app.data.alerts
+package com.heysafe.app.data.alerts
 
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -2656,7 +2656,7 @@ class AlertsRepositoryTest {
 - [ ] **Step 3: Implement**
 
 ```kotlin
-package com.sakhisafe.app.data.alerts
+package com.heysafe.app.data.alerts
 
 interface AlertsBackend {
     suspend fun create(alert: Alert): String
@@ -2677,7 +2677,7 @@ class AlertsRepository(private val backend: AlertsBackend) {
 - [ ] **Step 4: `FirebaseAlertsBackend`**
 
 ```kotlin
-package com.sakhisafe.app.data.alerts
+package com.heysafe.app.data.alerts
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -2742,12 +2742,12 @@ git commit -m "phase4: alerts repository with firebase backend"
 ### Task 4.6: `WhatsAppLauncher`
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/domain/alert/WhatsAppLauncher.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/domain/alert/WhatsAppLauncher.kt`
 
 - [ ] **Step 1: Implement**
 
 ```kotlin
-package com.sakhisafe.app.domain.alert
+package com.heysafe.app.domain.alert
 
 import android.content.Context
 import android.content.Intent
@@ -2785,16 +2785,16 @@ git commit -m "phase4: whatsapp deep-link launcher"
 ### Task 4.7: `AlertOrchestrator` (TDD where possible)
 
 **Files:**
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/domain/alert/AlertOrchestrator.kt`
-- Create: `phoneapp/src/test/java/com/sakhisafe/app/domain/alert/AlertOrchestratorTest.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/di/ServiceLocator.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/domain/alert/AlertOrchestrator.kt`
+- Create: `phoneapp/src/test/java/com/heysafe/app/domain/alert/AlertOrchestratorTest.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/di/ServiceLocator.kt`
 
 The orchestrator runs the full pipeline: get GPS → start audio → create alert doc → fan-out WhatsApp → wait 30s → stop audio → upload → patch URL.
 
 - [ ] **Step 1: Define orchestrator interface**
 
 ```kotlin
-package com.sakhisafe.app.domain.alert
+package com.heysafe.app.domain.alert
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -2820,17 +2820,17 @@ interface AlertOrchestrator {
 - [ ] **Step 2: Implementation**
 
 ```kotlin
-package com.sakhisafe.app.domain.alert
+package com.heysafe.app.domain.alert
 
 import android.content.Context
-import com.sakhisafe.app.data.alerts.Alert
-import com.sakhisafe.app.data.alerts.AlertsRepository
-import com.sakhisafe.app.data.alerts.GeoPoint
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.contacts.Contact
-import com.sakhisafe.app.data.contacts.ContactsRepository
-import com.sakhisafe.app.domain.audio.AudioRecorder
-import com.sakhisafe.app.location.LocationProvider
+import com.heysafe.app.data.alerts.Alert
+import com.heysafe.app.data.alerts.AlertsRepository
+import com.heysafe.app.data.alerts.GeoPoint
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.contacts.Contact
+import com.heysafe.app.data.contacts.ContactsRepository
+import com.heysafe.app.domain.audio.AudioRecorder
+import com.heysafe.app.location.LocationProvider
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -2959,18 +2959,18 @@ git commit -m "phase4: alert orchestrator pipeline"
 ### Task 4.8: `ActiveAlertScreen` + auto-launch
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/alert/ActiveAlertScreen.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/alert/AlertViewModel.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/SakhiSafeApp.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/alert/ActiveAlertScreen.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/alert/AlertViewModel.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/HeySafeApp.kt`
 
 - [ ] **Step 1: `AlertViewModel`**
 
 ```kotlin
-package com.sakhisafe.app.ui.alert
+package com.heysafe.app.ui.alert
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakhisafe.app.domain.alert.AlertOrchestrator
+import com.heysafe.app.domain.alert.AlertOrchestrator
 import kotlinx.coroutines.launch
 
 class AlertViewModel(private val orchestrator: AlertOrchestrator) : ViewModel() {
@@ -3015,7 +3015,7 @@ fun ActiveAlertScreen(
 
 - [ ] **Step 3: Auto-navigate to alert when one starts**
 
-In `SakhiSafeApp`, observe `ServiceLocator.alertOrchestrator.progress`; when `alertId != null && !resolved && currentRoute != Routes.ActiveAlert`, navigate to `Routes.ActiveAlert`.
+In `HeySafeApp`, observe `ServiceLocator.alertOrchestrator.progress`; when `alertId != null && !resolved && currentRoute != Routes.ActiveAlert`, navigate to `Routes.ActiveAlert`.
 
 ```kotlin
 val progress by ServiceLocator.alertOrchestrator.progress.collectAsState()
@@ -3297,13 +3297,13 @@ git commit -m "phase5: train wesad classifier and export tflite"
 ### Task 5.3: `FeatureExtractor` (TDD)
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/detection/FeatureExtractor.kt`
-- Create: `wearapp/src/test/java/com/sakhisafe/app/wear/detection/FeatureExtractorTest.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/detection/FeatureExtractor.kt`
+- Create: `wearapp/src/test/java/com/heysafe/app/wear/detection/FeatureExtractorTest.kt`
 
 - [ ] **Step 1: Tests**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -3325,7 +3325,7 @@ class FeatureExtractorTest {
 - [ ] **Step 2: Implement**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 import kotlin.math.max
 import kotlin.math.min
@@ -3366,7 +3366,7 @@ git commit -m "phase5: feature extractor matching wesad training"
 ### Task 5.4: `MlDetector` (loads TFLite + scaler)
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/detection/MlDetector.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/detection/MlDetector.kt`
 - Modify: `wearapp/build.gradle.kts` (add TFLite)
 
 - [ ] **Step 1: Add TFLite dependency**
@@ -3390,7 +3390,7 @@ android {
 - [ ] **Step 2: Implement `MlDetector`**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 import android.content.Context
 import org.json.JSONObject
@@ -3448,13 +3448,13 @@ git commit -m "phase5: ml detector loading tflite from assets"
 ### Task 5.5: `DetectionFusion` (OR-gate, TDD)
 
 **Files:**
-- Create: `wearapp/src/main/java/com/sakhisafe/app/wear/detection/DetectionFusion.kt`
-- Create: `wearapp/src/test/java/com/sakhisafe/app/wear/detection/DetectionFusionTest.kt`
+- Create: `wearapp/src/main/java/com/heysafe/app/wear/detection/DetectionFusion.kt`
+- Create: `wearapp/src/test/java/com/heysafe/app/wear/detection/DetectionFusionTest.kt`
 
 - [ ] **Step 1: Tests**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -3479,7 +3479,7 @@ class DetectionFusionTest {
 - [ ] **Step 2: Implement**
 
 ```kotlin
-package com.sakhisafe.app.wear.detection
+package com.heysafe.app.wear.detection
 
 object DetectionFusion {
     /** Returns trigger source label, or null if neither fired. */
@@ -3506,7 +3506,7 @@ git commit -m "phase5: detection fusion or-gate"
 ### Task 5.6: Wire ML into `SensorService`
 
 **Files:**
-- Modify: `wearapp/src/main/java/com/sakhisafe/app/wear/sensors/SensorService.kt`
+- Modify: `wearapp/src/main/java/com/heysafe/app/wear/sensors/SensorService.kt`
 
 - [ ] **Step 1: Add ML inference loop**
 
@@ -3526,7 +3526,7 @@ scope.launch {
         val features = FeatureExtractor.extract(hrArr, moArr) ?: continue
         val mlScore = runCatching { mlDetector.predict(features) }.getOrDefault(0f)
         val source = DetectionFusion.fuse(heuristic = detector.fired, mlScore = mlScore) ?: continue
-        Log.d("SakhiSafe", "Fusion fired: source=$source mlScore=$mlScore")
+        Log.d("HeySafe", "Fusion fired: source=$source mlScore=$mlScore")
         detector.reset()
         val i = Intent(this@SensorService, SosActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -3581,7 +3581,7 @@ git commit -m "phase5: ml inference fused with heuristic in sensor service"
 - [ ] **Step 2: `dashboard/.firebaserc`**
 
 ```json
-{ "projects": { "default": "sakhisafe-demo" } }
+{ "projects": { "default": "heysafe-demo" } }
 ```
 
 - [ ] **Step 3: `style.css`**
@@ -3611,13 +3611,13 @@ input { padding: 12px; border-radius: 12px; border: 1px solid #ddd; width: 100%;
 
 ```html
 <!doctype html>
-<html><head><meta charset="utf-8"><title>SakhiSafe Guardian</title>
+<html><head><meta charset="utf-8"><title>HeySafe Guardian</title>
 <link rel="stylesheet" href="style.css"></head>
 <body>
 <div class="container" style="max-width:420px;margin-top:80px">
   <div class="card">
     <h1>Guardian Login</h1>
-    <p style="color:var(--muted);margin:8px 0 24px">Monitor SakhiSafe alerts</p>
+    <p style="color:var(--muted);margin:8px 0 24px">Monitor HeySafe alerts</p>
     <input id="email" type="email" placeholder="Email"/>
     <input id="password" type="password" placeholder="Password"/>
     <button id="loginBtn" class="btn" style="width:100%">Sign in</button>
@@ -3637,9 +3637,9 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 const firebaseConfig = {
   // user pastes from Firebase console: project settings → general → web app
   apiKey: "REPLACE",
-  authDomain: "sakhisafe-demo.firebaseapp.com",
-  projectId: "sakhisafe-demo",
-  storageBucket: "sakhisafe-demo.appspot.com",
+  authDomain: "heysafe-demo.firebaseapp.com",
+  projectId: "heysafe-demo",
+  storageBucket: "heysafe-demo.appspot.com",
   messagingSenderId: "REPLACE",
   appId: "REPLACE",
 };
@@ -3664,7 +3664,7 @@ document.getElementById("loginBtn")?.addEventListener("click", async () => {
 
 Firebase console → project settings → "Your apps" → Add web app → name "Guardian Dashboard" → Register → copy the config snippet → paste into `auth.js` replacing the `REPLACE` values.
 
-Also: in Firebase console → Authentication → Users → Add user → create `guardian@sakhi.demo` / `guardian123` for the demo.
+Also: in Firebase console → Authentication → Users → Add user → create `guardian@heysafe.demo` / `guardian123` for the demo.
 
 - [ ] **Step 7: Commit**
 
@@ -3683,7 +3683,7 @@ git commit -m "phase6: dashboard scaffolding and login"
 
 ```html
 <!doctype html>
-<html><head><meta charset="utf-8"><title>SakhiSafe Guardian</title>
+<html><head><meta charset="utf-8"><title>HeySafe Guardian</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -3691,7 +3691,7 @@ git commit -m "phase6: dashboard scaffolding and login"
 </head><body>
 <div class="container">
   <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-    <h1>SakhiSafe Guardian</h1>
+    <h1>HeySafe Guardian</h1>
     <button id="logoutBtn" class="btn" style="background:#666">Sign out</button>
   </header>
   <div id="active" class="card alert-active" style="display:none">
@@ -3795,7 +3795,7 @@ User runs once:
 
 ```bash
 echo '[{"origin":["*"],"method":["GET"],"maxAgeSeconds":3600}]' > cors.json
-gsutil cors set cors.json gs://sakhisafe-demo.appspot.com
+gsutil cors set cors.json gs://heysafe-demo.appspot.com
 rm cors.json
 ```
 
@@ -3808,7 +3808,7 @@ cd dashboard
 firebase deploy --only hosting
 ```
 
-Open the printed URL (e.g. `https://sakhisafe-demo.web.app`). Login with `guardian@sakhi.demo` / `guardian123`. Trigger an alert from the watch. Within ~3 seconds the dashboard should show the active alert card with map, HR chart, and (after 30s) audio.
+Open the printed URL (e.g. `https://heysafe-demo.web.app`). Login with `guardian@heysafe.demo` / `guardian123`. Trigger an alert from the watch. Within ~3 seconds the dashboard should show the active alert card with map, HR chart, and (after 30s) audio.
 
 - [ ] **Step 5: Commit**
 
@@ -3826,10 +3826,10 @@ git commit -m "phase6: live guardian dashboard with map chart audio"
 ### Task 7.1: `HomeScreen` — Figma-faithful
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/home/HomeScreen.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/home/HomeViewModel.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/components/PressAndHoldSos.kt`
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/ui/components/BellIconButton.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/home/HomeScreen.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/home/HomeViewModel.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/components/PressAndHoldSos.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/ui/components/BellIconButton.kt`
 
 Reference: `design/figma/Home.png`. Layout top-to-bottom:
 1. **Top bar:** Avatar (initials) left + "Hi, {name}" greeting; Bell icon right.
@@ -3842,7 +3842,7 @@ Reference: `design/figma/Home.png`. Layout top-to-bottom:
 - [ ] **Step 1: `BellIconButton`**
 
 ```kotlin
-package com.sakhisafe.app.ui.components
+package com.heysafe.app.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
@@ -3864,7 +3864,7 @@ fun BellIconButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 3-second long-press triggers `onTriggered`. Uses `pointerInput` + `awaitPointerEventScope` with a 3s timer; cancel if finger lifts.
 
 ```kotlin
-package com.sakhisafe.app.ui.components
+package com.heysafe.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -3910,15 +3910,15 @@ fun PressAndHoldSos(onTriggered: () -> Unit, modifier: Modifier = Modifier) {
 - [ ] **Step 3: `HomeViewModel`**
 
 ```kotlin
-package com.sakhisafe.app.ui.home
+package com.heysafe.app.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sakhisafe.app.data.auth.AuthRepository
-import com.sakhisafe.app.data.contacts.Contact
-import com.sakhisafe.app.data.contacts.ContactGroup
-import com.sakhisafe.app.data.contacts.ContactsRepository
-import com.sakhisafe.app.domain.alert.AlertOrchestrator
+import com.heysafe.app.data.auth.AuthRepository
+import com.heysafe.app.data.contacts.Contact
+import com.heysafe.app.data.contacts.ContactGroup
+import com.heysafe.app.data.contacts.ContactsRepository
+import com.heysafe.app.domain.alert.AlertOrchestrator
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -4021,8 +4021,8 @@ git commit -m "phase7: home screen matching figma with long-press sos"
 
 **Files:**
 - Create: `phoneapp/src/main/res/raw/siren.mp3` (manual download)
-- Create: `phoneapp/src/main/java/com/sakhisafe/app/domain/audio/SoundAlarmController.kt`
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/home/HomeScreen.kt`
+- Create: `phoneapp/src/main/java/com/heysafe/app/domain/audio/SoundAlarmController.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/home/HomeScreen.kt`
 
 - [ ] **Step 1: Source siren audio**
 
@@ -4031,12 +4031,12 @@ User downloads a CC0 / public-domain siren WAV/MP3 (~5–10s). Suggested sources
 - [ ] **Step 2: `SoundAlarmController`**
 
 ```kotlin
-package com.sakhisafe.app.domain.audio
+package com.heysafe.app.domain.audio
 
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import com.sakhisafe.app.R
+import com.heysafe.app.R
 
 class SoundAlarmController(private val context: Context) {
     private var player: MediaPlayer? = null
@@ -4062,7 +4062,7 @@ class SoundAlarmController(private val context: Context) {
 
 Add to `ServiceLocator`: `lateinit var soundAlarmController: SoundAlarmController`; init: `SoundAlarmController(context.applicationContext)`.
 
-- [ ] **Step 3: Wire `onSoundAlarmTap` in `SakhiSafeApp`**
+- [ ] **Step 3: Wire `onSoundAlarmTap` in `HeySafeApp`**
 
 ```kotlin
 composable(Routes.Home) {
@@ -4084,7 +4084,7 @@ git commit -m "phase7: sound alarm controller and wiring"
 ### Task 7.3: `HelpScreen`
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/help/HelpScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/help/HelpScreen.kt`
 
 - [ ] **Step 1: Static helplines + tips**
 
@@ -4141,7 +4141,7 @@ git commit -m "phase7: help screen with helplines and tips"
 ### Task 7.4: `AboutScreen` (the integrity story)
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/about/AboutScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/about/AboutScreen.kt`
 
 - [ ] **Step 1: Sections**
 
@@ -4163,7 +4163,7 @@ Compose long scrollable surface with:
 fun AboutScreen(onSignedOut: () -> Unit) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
-            Text("About SakhiSafe", style = MaterialTheme.typography.headlineLarge)
+            Text("About HeySafe", style = MaterialTheme.typography.headlineLarge)
             Text("v1.0 — SRM Major Project", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(16.dp))
             Section("What this prototype does",
@@ -4223,7 +4223,7 @@ git commit -m "phase7: about screen with limitations and team"
 ### Task 7.5: Splash polish
 
 **Files:**
-- Modify: `phoneapp/src/main/java/com/sakhisafe/app/ui/splash/SplashScreen.kt`
+- Modify: `phoneapp/src/main/java/com/heysafe/app/ui/splash/SplashScreen.kt`
 - Add: `phoneapp/src/main/res/drawable/ic_logo.xml` (use existing logo from `images/logo.png` — convert to vector or import as PNG)
 
 - [ ] **Step 1: Splash with logo**
@@ -4238,9 +4238,9 @@ fun SplashScreen(onAuthenticated: () -> Unit, onUnauthenticated: () -> Unit) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(painter = painterResource(R.drawable.ic_logo), contentDescription = "SakhiSafe", modifier = Modifier.size(120.dp))
+                Image(painter = painterResource(R.drawable.ic_logo), contentDescription = "HeySafe", modifier = Modifier.size(120.dp))
                 Spacer(Modifier.height(16.dp))
-                Text("SakhiSafe", style = MaterialTheme.typography.headlineLarge)
+                Text("HeySafe", style = MaterialTheme.typography.headlineLarge)
                 Spacer(Modifier.height(24.dp))
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
@@ -4270,16 +4270,16 @@ git commit -m "phase7: polished splash with logo"
 - [ ] **Step 1: Write the script**
 
 ```markdown
-# SakhiSafe — 3-Minute Demo Script
+# HeySafe — 3-Minute Demo Script
 
 ## Pre-demo setup (the morning of)
 - [ ] Both APKs installed on phone + watch
 - [ ] Phone connected to mobile hotspot OR known good Wi-Fi
 - [ ] Pre-create 3 emergency contacts in app (with valid +91 numbers — your own + 2 teammates' phones in airplane mode receiving)
 - [ ] Pre-create 1 historical resolved alert (run a fake alert + resolve it) so dashboard history isn't empty
-- [ ] Open dashboard URL in laptop browser, signed in as `guardian@sakhi.demo` — KEEP TAB OPEN to maintain listener
+- [ ] Open dashboard URL in laptop browser, signed in as `guardian@heysafe.demo` — KEEP TAB OPEN to maintain listener
 - [ ] Charge watch to >50%
-- [ ] Backup video on phone (Files app → /Movies/sakhisafe-demo.mp4)
+- [ ] Backup video on phone (Files app → /Movies/heysafe-demo.mp4)
 - [ ] Sticky note: dashboard URL, guardian creds, both APK versions
 
 ## Demo flow
@@ -4335,7 +4335,7 @@ git commit -m "phase8: demo script with contingencies"
 - [ ] **Step 1: Seed test data**
 
 In a fresh app session:
-1. Sign up as `demo-user@sakhi.demo` / `demoSafe123`.
+1. Sign up as `demo-user@heysafe.demo` / `demoSafe123`.
 2. Add 3 contacts: yourself, two teammates' numbers (or any 3 numbers you control).
 3. Trigger a manual alert via long-press SOS → Resolve immediately (creates a resolved alert in history).
 4. Verify dashboard shows the resolved alert in history.
@@ -4348,7 +4348,7 @@ Use `scrcpy` (https://github.com/Genymobile/scrcpy) to mirror phone + watch on l
 - Phone Active Alert + WhatsApp
 - Laptop Dashboard with active alert
 
-Save as `Movies/sakhisafe-demo.mp4` on phone (transfer via `adb push`).
+Save as `Movies/heysafe-demo.mp4` on phone (transfer via `adb push`).
 
 - [ ] **Step 3: Commit a script reference (no video binary)**
 
@@ -4420,7 +4420,7 @@ git push origin main --tags
 
 ## Execution handoff
 
-**Plan complete and saved to `docs/superpowers/plans/2026-04-25-sakhisafe-mvp.md`.**
+**Plan complete and saved to `docs/superpowers/plans/2026-04-25-heysafe-mvp.md`.**
 
 Two execution options:
 

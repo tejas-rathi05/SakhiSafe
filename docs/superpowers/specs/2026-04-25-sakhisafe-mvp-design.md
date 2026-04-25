@@ -1,4 +1,4 @@
-yw# SakhiSafe — 7-Day MVP Design Spec
+yw# HeySafe — 7-Day MVP Design Spec
 
 **Date:** 2026-04-25
 **Author:** Karan + Claude
@@ -47,7 +47,7 @@ The judges should leave believing:
 | Multi-contact strategy | **Fan-out** — message all contacts in parallel | Figma shows "emergency circle" UI; matches PPT messaging. |
 | Maps | **Leaflet + OpenStreetMap** in dashboard; **`Intent` to Google Maps** in WhatsApp link | OSM is free, no API key. |
 | Dashboard hosting | **Firebase Hosting** (single site, static HTML/JS) | Same Firebase project, no extra account. |
-| Package ID | **`com.sakhisafe.app`** for both modules | Wear pairing model. Replaces `com.example.myapp` placeholder. |
+| Package ID | **`com.heysafe.app`** for both modules | Wear pairing model. Replaces `com.example.myapp` placeholder. |
 
 ## 4. Architecture
 
@@ -97,15 +97,15 @@ The judges should leave believing:
 ### Module structure
 
 ```
-SakhiSafe/
+HeySafe/
 ├── phoneapp/              (renamed from app/, full rewrite to Compose)
-│   └── src/main/java/com/sakhisafe/app/
+│   └── src/main/java/com/heysafe/app/
 │       ├── ui/            (Compose screens)
 │       ├── data/          (Firebase repositories)
 │       ├── domain/        (alert orchestrator, models)
 │       └── wear/          (Data Layer listener)
-├── wearapp/               (renamed from sakhisafeapp/)
-│   └── src/main/java/com/sakhisafe/app/wear/
+├── wearapp/               (renamed from heysafeapp/)
+│   └── src/main/java/com/heysafe/app/wear/
 │       ├── ui/            (existing Compose, restyled)
 │       ├── sensors/       (HR + ACC collection)
 │       ├── detection/     (heuristic + TFLite)
@@ -123,7 +123,7 @@ SakhiSafe/
 └── docs/superpowers/specs/(this file)
 ```
 
-The empty `sakhisafe/` module is **deleted** in Phase 1.
+The empty `heysafe/` module is **deleted** in Phase 1.
 
 ## 5. Phase breakdown (the 8 phases)
 
@@ -134,9 +134,9 @@ Each phase is independently shippable. If we have to stop early, we still have a
 **Goal:** Clean foundation. Project builds with Firebase initialized.
 
 **Tasks:**
-- Delete the empty `sakhisafe/` module from `settings.gradle.kts`.
-- Rename modules: `app/ → phoneapp/`, `sakhisafeapp/ → wearapp/`.
-- Rename packages: `com.example.myapp → com.sakhisafe.app` (and `.wear` for watch).
+- Delete the empty `heysafe/` module from `settings.gradle.kts`.
+- Rename modules: `app/ → phoneapp/`, `heysafeapp/ → wearapp/`.
+- Rename packages: `com.example.myapp → com.heysafe.app` (and `.wear` for watch).
 - Create Firebase project on console, register Android app, download `google-services.json` for both modules.
 - Add Firebase BOM, Auth, Firestore, Storage SDKs to `phoneapp/build.gradle.kts`.
 - Update `libs.versions.toml` to add Compose BOM, Material 3, Coil, Lottie, Firebase BOM. **No Hilt** for MVP — single-instance manual DI is fine for 7 days.
@@ -149,7 +149,7 @@ Each phase is independently shippable. If we have to stop early, we still have a
 **Goal:** Phone app rewritten to single-Activity Compose shell with placeholder routes for every screen.
 
 **Tasks:**
-- Replace `MainActivity` (Java) with `MainActivity.kt` hosting `setContent { SakhiSafeApp() }`.
+- Replace `MainActivity` (Java) with `MainActivity.kt` hosting `setContent { HeySafeApp() }`.
 - Set up `NavHost` with routes: `splash`, `auth/login`, `auth/register`, `home`, `vitals`, `contacts`, `contacts/add`, `help`, `about`, `sos/countdown`, `sos/active`.
 - Build `MaterialTheme` with the design tokens from §7.
 - Create `BottomNavBar` Composable (Home / Vitals / Help / Info — matches Figma).
@@ -308,7 +308,7 @@ match /users/{uid} {
 - **Audio player:** `<audio>` tag pointed at the Storage signed URL.
 - **History table:** all alerts, newest first, status pills, click to view.
 - **"Mark Resolved" button:** writes `status: "resolved"` back to Firestore.
-- Deploy via `firebase init hosting` + `firebase deploy --only hosting`. URL like `https://sakhisafe-demo.web.app`.
+- Deploy via `firebase init hosting` + `firebase deploy --only hosting`. URL like `https://heysafe-demo.web.app`.
 
 **Firestore rules** (extend Phase 2):
 ```
@@ -442,7 +442,7 @@ Add **Inter Variable** font to `phoneapp/res/font/inter.ttf` (download free from
 | Time | Action | Spoken line |
 |---|---|---|
 | 0:00 | Open dashboard on laptop, log in as guardian. Pre-show recent alert history. | "This is the Guardian Dashboard — what a parent or law-enforcement contact would see." |
-| 0:20 | Open SakhiSafe phone app, walk through Home, Vitals (live HR from watch), Contacts (with the 3 pre-added). | "On the user's side: live vitals from the wearable, emergency contacts, and a manual SOS." |
+| 0:20 | Open HeySafe phone app, walk through Home, Vitals (live HR from watch), Contacts (with the 3 pre-added). | "On the user's side: live vitals from the wearable, emergency contacts, and a manual SOS." |
 | 0:50 | Show About screen briefly. | "We're transparent about what's heuristic vs what's ML. Our model was trained on the WESAD public dataset." |
 | 1:10 | Put watch on, show Vitals screen updating in real time. | "The watch streams heart rate and motion at 1 Hz over the Wear Data Layer." |
 | 1:30 | Perform the **distress simulation**: shake watch hard while running in place for 12s. | "I'm simulating a struggle — elevated heart rate plus erratic motion." |
