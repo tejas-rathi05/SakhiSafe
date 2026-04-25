@@ -1,4 +1,4 @@
-# SakhiSafe — 7-Day MVP Design Spec
+yw# SakhiSafe — 7-Day MVP Design Spec
 
 **Date:** 2026-04-25
 **Author:** Karan + Claude
