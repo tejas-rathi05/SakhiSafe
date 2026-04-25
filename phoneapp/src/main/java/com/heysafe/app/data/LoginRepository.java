@@ -1,6 +1,6 @@
-package com.sakhisafe.app.data;
+package com.heysafe.app.data;
 
-import com.sakhisafe.app.data.model.LoggedInUser;
+import com.heysafe.app.data.model.LoggedInUser;
 
 /**
  * Class that requests authentication and user information from the remote data source and

@@ -1,4 +1,4 @@
-package com.sakhisafe.app.wear.presentation
+package com.heysafe.app.wear.presentation
 
 import android.Manifest
 import android.content.Intent
@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.sakhisafe.app.wear.presentation.theme.MyAppTheme
+import com.heysafe.app.wear.presentation.theme.MyAppTheme
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable

@@ -1,4 +1,4 @@
-package com.sakhisafe.app.wear.presentation
+package com.heysafe.app.wear.presentation
 
 import android.content.Intent
 import android.os.Bundle
@@ -28,7 +28,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
-import com.sakhisafe.app.wear.presentation.theme.MyAppTheme
+import com.heysafe.app.wear.presentation.theme.MyAppTheme
 import kotlinx.coroutines.delay
 
 

@@ -1,4 +1,4 @@
-package com.sakhisafe.app.wear.ui.theme
+package com.heysafe.app.wear.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

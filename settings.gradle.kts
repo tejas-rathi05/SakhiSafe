@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SakhiSafe"
+rootProject.name = "HeySafe"
 include(":phoneapp")
 include(":wearapp")

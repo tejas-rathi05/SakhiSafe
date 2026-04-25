@@ -7,27 +7,27 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.sakhisafe.app.ui.home.HomeFragment"
+        android:name="com.heysafe.app.ui.home.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/navigation_vitals"
-        android:name="com.sakhisafe.app.ui.vitals.VitalsFragment"
+        android:name="com.heysafe.app.ui.vitals.VitalsFragment"
         android:label="Vitals"
         tools:layout="@layout/fragment_vitals" />
     <fragment
         android:id="@+id/navigation_sos"
-        android:name="com.sakhisafe.app.ui.sos.SosFragment"
+        android:name="com.heysafe.app.ui.sos.SosFragment"
         android:label="SOS"
         tools:layout="@layout/fragment_sos" />
 
     <fragment
         android:id="@+id/navigation_help"
-        android:name="com.sakhisafe.app.ui.help.HelpFragment"
+        android:name="com.heysafe.app.ui.help.HelpFragment"
         android:label="Help" />
 
     <fragment
         android:id="@+id/navigation_learn"
-        android:name="com.sakhisafe.app.ui.learn.LearnFragment"
+        android:name="com.heysafe.app.ui.learn.LearnFragment"
         android:label="Learn" />
 </navigation>

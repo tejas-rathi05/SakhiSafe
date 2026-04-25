@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyApp</string>
+    <string name="app_name">HeySafe</string>
     <string name="login">LOGIN</string>
     <string name="signup">Sign up</string>
     <string name="email">Email</string>

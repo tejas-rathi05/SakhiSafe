@@ -1,4 +1,4 @@
-package com.sakhisafe.app;
+package com.heysafe.app;
 
 import android.os.Bundle;
 import android.util.Log;

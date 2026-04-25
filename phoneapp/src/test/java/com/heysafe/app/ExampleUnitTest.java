@@ -1,4 +1,4 @@
-package com.sakhisafe.app;
+package com.heysafe.app;
 
 import org.junit.Test;
 

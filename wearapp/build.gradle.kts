@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.sakhisafe.app.wear"
+    namespace = "com.heysafe.app.wear"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sakhisafe.app"
+        applicationId = "com.heysafe.app"
         minSdk = 25
         targetSdk = 34
         versionCode = 1

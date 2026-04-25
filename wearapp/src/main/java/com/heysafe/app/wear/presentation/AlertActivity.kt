@@ -1,4 +1,4 @@
-package com.sakhisafe.app.wear.presentation
+package com.heysafe.app.wear.presentation
 
 import android.os.Bundle
 
@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sakhisafe.app.wear.presentation.theme.MyAppTheme
+import com.heysafe.app.wear.presentation.theme.MyAppTheme
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.tooling.preview.Preview
-import com.sakhisafe.app.wear.presentation.theme.MyAppTheme
+import com.heysafe.app.wear.presentation.theme.MyAppTheme
 import kotlinx.coroutines.delay
 
 
