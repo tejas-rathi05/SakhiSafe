@@ -1,4 +1,4 @@
-package com.example.myapp;
+package com.sakhisafe.app;
 
 import android.os.Bundle;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package com.example.myapp.data.model;
+package com.sakhisafe.app.data.model;
 
 /**
  * Data class that captures user information for logged in users retrieved from LoginRepository

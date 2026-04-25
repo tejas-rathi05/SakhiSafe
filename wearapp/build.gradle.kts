@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapp"
+    namespace = "com.sakhisafe.app.wear"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.myapp"
+        applicationId = "com.sakhisafe.app"
         minSdk = 25
         targetSdk = 34
         versionCode = 1

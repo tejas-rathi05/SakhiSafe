@@ -1,4 +1,4 @@
-package com.example.myapp.ui.theme
+package com.sakhisafe.app.wear.ui.theme
 
 import android.app.Activity
 import android.os.Build

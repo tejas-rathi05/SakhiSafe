@@ -1,4 +1,4 @@
-package com.example.myapp;
+package com.sakhisafe.app;
 
 import org.junit.Test;
 

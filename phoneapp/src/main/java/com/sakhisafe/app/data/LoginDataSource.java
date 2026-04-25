@@ -1,6 +1,6 @@
-package com.example.myapp.data;
+package com.sakhisafe.app.data;
 
-import com.example.myapp.data.model.LoggedInUser;
+import com.sakhisafe.app.data.model.LoggedInUser;
 
 import java.io.IOException;
 
