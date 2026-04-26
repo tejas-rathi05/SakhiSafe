@@ -6,7 +6,11 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import com.heysafe.app.wear.detection.DetectorConfig
+import com.heysafe.app.wear.detection.HeuristicDetector
+import com.heysafe.app.wear.presentation.SosActivity
 import com.heysafe.app.wear.transport.DataLayerSender
+import com.heysafe.app.wear.transport.WearMessages
 import com.heysafe.app.wear.util.RollingWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +29,7 @@ class SensorService : Service() {
         val hr = HeartRateCollector(this).samples()
         val motion = MotionCollector(this).samples()
         val sender = DataLayerSender(this)
+        val detector = HeuristicDetector(DetectorConfig())
 
         scope.launch {
             motion.collectLatest { m -> motionWindow.add(m) }
@@ -34,8 +39,19 @@ class SensorService : Service() {
                 hrWindow.add(v)
                 val baseline = hrWindow.median()
                 val motionVar = motionWindow.variance()
+                val ts = System.currentTimeMillis()
                 runCatching {
-                    sender.sendVitals(v, baseline, motionVar, System.currentTimeMillis())
+                    sender.sendVitals(v, baseline, motionVar, ts)
+                }
+                detector.feed(v, baseline, motionVar, ts)
+                if (detector.fired) {
+                    detector.reset()
+                    val intent = Intent(this@SensorService, SosActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra("triggerSource", WearMessages.SOURCE_HEURISTIC)
+                        .putExtra("hrWindow", hrWindow.snapshot().toFloatArray())
+                        .putExtra("motionWindow", motionWindow.snapshot().toFloatArray())
+                    startActivity(intent)
                 }
             }
         }
