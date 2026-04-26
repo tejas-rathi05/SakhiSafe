@@ -9,19 +9,26 @@ TFLite binary classifier with the right I/O shape today, without blocking on the
 1.2 GB WESAD download.
 
 > **Action required:** the model artifacts have not been generated yet because the
-> system Python (3.14) does not have TensorFlow wheels available. To produce the
-> stub artifacts, install Python 3.10–3.12 and run:
+> system Python (3.14) does not have TensorFlow wheels available. Two ways to fix:
 >
+> **Option A (fastest, no install): Google Colab**
+> 1. Go to https://colab.research.google.com → File → Upload → pick `ml/train_stub.py`
+> 2. In Colab, run `!python train_stub.py` in a cell
+> 3. Right-click `model.tflite` and `feature_scaler.json` → Download
+> 4. Drop them into `wearapp/src/main/assets/`
+>
+> **Option B (local): install Python 3.12**
 > ```bash
-> cd ml
-> pip install -r requirements.txt
-> python train_stub.py
-> cp model.tflite ../wearapp/src/main/assets/model.tflite
-> cp feature_scaler.json ../wearapp/src/main/assets/feature_scaler.json
+> # winget install python.python.3.12  (or download from python.org)
+> py -3.12 -m venv ml/.venv
+> ml/.venv/Scripts/pip install -r ml/requirements.txt
+> ml/.venv/Scripts/python ml/train_stub.py
+> cp ml/model.tflite wearapp/src/main/assets/model.tflite
+> cp ml/feature_scaler.json wearapp/src/main/assets/feature_scaler.json
 > ```
 >
-> Until this is done, P5.4's `MlDetector` must gracefully handle the missing
-> assets (skip ML branch, fall back to heuristic-only).
+> Either takes ~2 minutes. Until this is done, P5.4's `MlDetector` gracefully
+> degrades — the watch keeps running with the heuristic detector alone, no crash.
 
 **Synthetic data stats (what `train_stub.py` will produce):**
 - 2000 samples per class (calm vs stress), Gaussian-distributed
