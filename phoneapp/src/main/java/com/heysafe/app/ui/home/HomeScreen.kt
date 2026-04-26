@@ -6,9 +6,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.heysafe.app.di.ServiceLocator
+import com.heysafe.app.ui.alert.AlertViewModel
 
 @Composable
-fun HomeScreen(onOpenContacts: () -> Unit = {}) {
+fun HomeScreen(
+    onOpenContacts: () -> Unit = {},
+    alertVm: AlertViewModel = viewModel { AlertViewModel(ServiceLocator.alertOrchestrator) },
+) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -25,6 +31,14 @@ fun HomeScreen(onOpenContacts: () -> Unit = {}) {
             Spacer(Modifier.height(32.dp))
             Button(onClick = onOpenContacts, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                 Text("Open contacts")
+            }
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = { alertVm.manualAlert() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+            ) {
+                Text("Test SOS (manual)")
             }
         }
     }

@@ -64,6 +64,12 @@ fun HeyNavGraph(navController: NavHostController, startDestination: String) {
         }
         composable(Routes.Help) { HelpScreen() }
         composable(Routes.About) { AboutScreen() }
-        composable(Routes.ActiveAlert) { ActiveAlertScreen() }
+        composable(Routes.ActiveAlert) {
+            ActiveAlertScreen(onResolved = {
+                if (!navController.popBackStack(Routes.Home, inclusive = false)) {
+                    navController.navigate(Routes.Home) { popUpTo(0) { inclusive = true } }
+                }
+            })
+        }
     }
 }
