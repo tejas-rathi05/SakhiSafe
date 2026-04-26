@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HeySafe Guardian — Login</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container" style="max-width:420px; margin-top:80px">
+  <div class="card">
+    <h1>Guardian Login</h1>
+    <p style="color:var(--muted); margin: 8px 0 24px">Monitor HeySafe alerts</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="loginBtn" class="btn" style="width:100%">Sign in</button>
+    <p id="error" style="color: var(--primary); margin-top: 12px"></p>
+  </div>
+</div>
+<script type="module" src="auth.js"></script>
+</body>
+</html>
