@@ -47,7 +47,10 @@ fun HeyNavGraph(navController: NavHostController, startDestination: String) {
             )
         }
         composable(Routes.Home) {
-            HomeScreen(onOpenContacts = { navController.navigate(Routes.Contacts) })
+            HomeScreen(
+                onSoundAlarmTap = { /* P7.2 wires SoundAlarmController.toggle() */ },
+                onManageContacts = { navController.navigate(Routes.Contacts) },
+            )
         }
         composable(Routes.Vitals) { VitalsScreen() }
         composable(Routes.Contacts) {
