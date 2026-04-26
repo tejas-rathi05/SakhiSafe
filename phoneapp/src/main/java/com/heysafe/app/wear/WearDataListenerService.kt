@@ -7,7 +7,11 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
 import com.heysafe.app.data.vitals.VitalsSample
 import com.heysafe.app.di.ServiceLocator
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
+@OptIn(DelicateCoroutinesApi::class)
 class WearDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         for (event in dataEvents) {
@@ -27,8 +31,14 @@ class WearDataListenerService : WearableListenerService() {
                 }
                 path.startsWith(WearMessages.PATH_ALERT_CONFIRMED) -> {
                     val src = map.getString(WearMessages.KEY_TRIGGER_SOURCE) ?: "unknown"
-                    Log.i("HeySafe", "Wear alert received: source=$src — orchestrator wiring lands in Phase 4")
-                    // TODO(P4.7): forward to ServiceLocator.alertOrchestrator.onWearAlert(...)
+                    val hrWindow = map.getFloatArray(WearMessages.KEY_HR_WINDOW) ?: floatArrayOf()
+                    val motionWindow = map.getFloatArray(WearMessages.KEY_MOTION_WINDOW) ?: floatArrayOf()
+                    Log.i("HeySafe", "Wear alert received: source=$src, hrWindow=${hrWindow.size}, motionWindow=${motionWindow.size}")
+                    GlobalScope.launch {
+                        runCatching {
+                            ServiceLocator.alertOrchestrator.onWearAlert(src, hrWindow, motionWindow)
+                        }.onFailure { Log.e("HeySafe", "Alert orchestration failed", it) }
+                    }
                 }
                 path.startsWith(WearMessages.PATH_ALERT_CANCELED) -> {
                     Log.i("HeySafe", "Wear alert canceled by user")
