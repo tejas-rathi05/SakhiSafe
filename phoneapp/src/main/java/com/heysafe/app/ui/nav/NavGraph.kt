@@ -67,7 +67,11 @@ fun HeyNavGraph(navController: NavHostController, startDestination: String) {
             )
         }
         composable(Routes.Help) { HelpScreen() }
-        composable(Routes.About) { AboutScreen() }
+        composable(Routes.About) {
+            AboutScreen(onSignedOut = {
+                navController.navigate(Routes.Login) { popUpTo(0) { inclusive = true } }
+            })
+        }
         composable(Routes.ActiveAlert) {
             ActiveAlertScreen(onResolved = {
                 if (!navController.popBackStack(Routes.Home, inclusive = false)) {
