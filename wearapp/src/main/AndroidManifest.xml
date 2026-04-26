@@ -44,26 +44,14 @@
         </activity>
         <activity
             android:name=".presentation.SosActivity"
-            android:exported="true"
+            android:exported="false"
             android:taskAffinity=""
-            android:theme="@style/MainActivityTheme.Starting">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:theme="@style/MainActivityTheme.Starting" />
         <activity
             android:name=".presentation.AlertActivity"
-            android:exported="true"
+            android:exported="false"
             android:taskAffinity=""
-            android:theme="@style/MainActivityTheme.Starting">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:theme="@style/MainActivityTheme.Starting" />
 
         <service
             android:name=".sensors.SensorService"
