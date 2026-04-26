@@ -46,6 +46,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    androidResources {
+        noCompress += listOf("tflite", "json")
+    }
 }
 
 dependencies {
@@ -71,6 +74,7 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Check for the latest version
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // For Android-specific features
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.tensorflow.lite)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
