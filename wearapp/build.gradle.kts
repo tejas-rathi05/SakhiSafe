@@ -70,6 +70,7 @@ dependencies {
     debugImplementation(libs.ui.test.manifest)
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Check for the latest version
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // For Android-specific features
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

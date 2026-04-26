@@ -3,10 +3,7 @@ package com.heysafe.app.wear.presentation
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -23,8 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -34,146 +32,100 @@ import androidx.core.content.ContextCompat
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.heysafe.app.wear.presentation.theme.MyAppTheme
-import com.google.android.gms.wearable.DataClient
-import com.google.android.gms.wearable.PutDataMapRequest
-import com.google.android.gms.wearable.Wearable
+import com.heysafe.app.wear.sensors.SensorService
 
-class MainActivity : ComponentActivity(), SensorEventListener {
+class MainActivity : ComponentActivity() {
 
+    // 3x button SOS — preserved
     private var pressCount = 0
     private val requiredPresses = 3
-    private val pressTimeout = 1000L // Timeout in milliseconds
+    private val pressTimeout = 1000L
     private val handler = Handler(Looper.getMainLooper())
-    private val pressResetRunnable = Runnable {
-        pressCount = 0  // Reset press count after timeout
-    }
+    private val pressResetRunnable = Runnable { pressCount = 0 }
+
+    private val TAG = "HeySafe"
+    private var monitoringStarted by mutableStateOf(false)
+
+    private val requestBodySensors =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) maybeStartMonitoring()
+            else Log.d(TAG, "BODY_SENSORS denied")
+        }
+
+    private val requestPostNotifs =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            Log.d(TAG, "POST_NOTIFICATIONS granted=$granted")
+            // notifications denial doesn't block the service starting on >=O,
+            // it just means no visible foreground notification on Android 13+
+            maybeStartMonitoring()
+        }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_STEM_1) { // Adjust this key code based on your watch's hardware
+        if (keyCode == KeyEvent.KEYCODE_STEM_1) {
             pressCount++
-            Log.d("PressCount", "Button pressed $pressCount times")
-
-            // Remove any previously scheduled reset
             handler.removeCallbacks(pressResetRunnable)
-
-            // Schedule a reset after timeout
             handler.postDelayed(pressResetRunnable, pressTimeout)
-
             if (pressCount >= requiredPresses) {
-                pressCount = 0  // Reset the counter after the action is triggered
-                Log.d("PressCount", "Button pressed thrice!")
-                openNewScreen()  // Call your function to trigger the action
+                pressCount = 0
+                Log.d(TAG, "3x button → SOS")
+                startActivity(Intent(this, SosActivity::class.java))
             }
-            return true  // Indicate the event is handled
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
 
-    private lateinit var sensorManager: SensorManager
-    private var heartRateSensor: Sensor? = null
-    private val TAG = "HeartRateLog"
-
-    // Permission request launcher using ActivityResultContracts
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                Log.d(TAG, "Permission granted, ready to measure heart rate.")
-            } else {
-                Log.d(TAG, "Permission denied to access sensors")
-            }
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
-            WearApp(onMeasureHeartRate = {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED) {
-                    initializeHeartRateSensor()
-                } else {
-                    requestPermissionLauncher.launch(Manifest.permission.BODY_SENSORS)
-                }
-            })
+            WearApp(monitoring = monitoringStarted, onStart = { onStartMonitoringTapped() })
         }
     }
 
-    private fun openNewScreen() {
-        // Example: Start a new activity when button is pressed three times
-        val intent = Intent(this, SosActivity::class.java)
-        startActivity(intent)
-    }
+    private fun onStartMonitoringTapped() {
+        val needsBodySensors = ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED
+        val needsPostNotifs = Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
 
-    // Initializes the heart rate sensor
-    private fun initializeHeartRateSensor() {
-        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        heartRateSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-
-        if (heartRateSensor != null) {
-            sensorManager.registerListener(this, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL)
-            Log.d(TAG, "Heart rate sensor initialized")
-        } else {
-            Log.d(TAG, "Heart rate sensor not available")
+        when {
+            needsBodySensors -> requestBodySensors.launch(Manifest.permission.BODY_SENSORS)
+            needsPostNotifs -> requestPostNotifs.launch(Manifest.permission.POST_NOTIFICATIONS)
+            else -> maybeStartMonitoring()
         }
     }
 
-    private fun sendHeartRateToPhone(heartRate: Float) {
-        val dataClient: DataClient = Wearable.getDataClient(this)
-        val putDataMapRequest = PutDataMapRequest.create("/heart_rate_data_path")
-        putDataMapRequest.dataMap.putFloat("heart_rate", heartRate)
-        val putDataRequest = putDataMapRequest.asPutDataRequest().setUrgent()
-
-        dataClient.putDataItem(putDataRequest)
-            .addOnSuccessListener {
-                Log.d(TAG, "Heart rate data sent to phone: $heartRate")
-            }
-            .addOnFailureListener {
-                Log.d(TAG, "Failed to send heart rate data to phone")
-            }
-    }
-
-    override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_HEART_RATE) {
-            val heartRate = event.values[0]
-            Log.d(TAG, "Heart rate: $heartRate")
-            sendHeartRateToPhone(heartRate)
+    private fun maybeStartMonitoring() {
+        if (monitoringStarted) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
+            return // still not granted — nothing to do
         }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Handle accuracy changes if needed
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        sensorManager.unregisterListener(this)
+        ContextCompat.startForegroundService(this, Intent(this, SensorService::class.java))
+        monitoringStarted = true
+        Log.d(TAG, "SensorService started")
     }
 }
 
 @Composable
-fun WearApp(onMeasureHeartRate: () -> Unit) {
+fun WearApp(monitoring: Boolean, onStart: () -> Unit) {
     MyAppTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(androidx.wear.compose.material.MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
-            TimeText() // Shows the time at the top
-
-            val measuring = remember { mutableStateOf(false) }
-            val heartRateText = if (measuring.value) "Measuring..." else "Measure Heart Rate"
-
-            // Button to measure heart rate
+            TimeText()
             Button(
-                onClick = {
-                    measuring.value = true
-                    onMeasureHeartRate()
-                },
+                onClick = onStart,
+                enabled = !monitoring,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
-                Text(text = heartRateText, textAlign = TextAlign.Center)
+                Text(
+                    text = if (monitoring) "Monitoring..." else "Start monitoring",
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
@@ -182,5 +134,5 @@ fun WearApp(onMeasureHeartRate: () -> Unit) {
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearApp(onMeasureHeartRate = {})
+    WearApp(monitoring = false, onStart = {})
 }
