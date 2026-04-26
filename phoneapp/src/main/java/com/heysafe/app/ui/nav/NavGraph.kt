@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.heysafe.app.di.ServiceLocator
 import com.heysafe.app.ui.about.AboutScreen
 import com.heysafe.app.ui.alert.ActiveAlertScreen
 import com.heysafe.app.ui.auth.LoginScreen
@@ -48,7 +49,7 @@ fun HeyNavGraph(navController: NavHostController, startDestination: String) {
         }
         composable(Routes.Home) {
             HomeScreen(
-                onSoundAlarmTap = { /* P7.2 wires SoundAlarmController.toggle() */ },
+                onSoundAlarmTap = { ServiceLocator.soundAlarmController.toggle() },
                 onManageContacts = { navController.navigate(Routes.Contacts) },
             )
         }

@@ -12,6 +12,7 @@ import com.heysafe.app.domain.alert.AlertOrchestrator
 import com.heysafe.app.domain.alert.DefaultAlertOrchestrator
 import com.heysafe.app.domain.alert.WhatsAppLauncher
 import com.heysafe.app.domain.audio.AudioRecorder
+import com.heysafe.app.domain.audio.SoundAlarmController
 import com.heysafe.app.location.LocationProvider
 
 object ServiceLocator {
@@ -21,6 +22,7 @@ object ServiceLocator {
     lateinit var vitalsRepository: VitalsRepository
     lateinit var alertsRepository: AlertsRepository
     lateinit var alertOrchestrator: AlertOrchestrator
+    lateinit var soundAlarmController: SoundAlarmController
 
     fun init(context: Context) {
         if (initialized) return
@@ -40,6 +42,7 @@ object ServiceLocator {
                 audioRecorder = AudioRecorder(appCtx),
                 whatsAppLauncher = WhatsAppLauncher(appCtx),
             )
+            soundAlarmController = SoundAlarmController(appCtx)
             initialized = true
         }
     }
