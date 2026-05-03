@@ -229,4 +229,4 @@ This project is licensed under the [MIT License](LICENSE).
 **Innovisionaries**
 - Tejas Rathi – [rathi.tejas1155@gmail.com](mailto:rathi.tejas1155@gmail.com)
 - Vinayak Parashar – [vinayakbparashar@gmail.com](mailto:vinayakbparashar@gmail.com)
-- Harsh
+- Harsh - [chaudharyh0001@gmail.com] (mailto:chaudharyh0001@gmail.com)
