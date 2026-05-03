@@ -134,8 +134,8 @@ Detailed pipeline, fusion, and escalation diagrams live in [`paper_figures/`](pa
 
 ### 1. Clone
 ```bash
-git clone https://github.com/tejas-rathi05/SakhiSafe.git
-cd SakhiSafe
+git clone https://github.com/tejas-rathi05/VSafe.git
+cd VSafe
 ```
 
 ### 2. Wire up Firebase
@@ -176,16 +176,20 @@ Detection on-device runs in `wearapp/.../detection/DetectionFusion.kt`, fusing t
 ## Screenshots
 
 ### Phone
-| Home | Vitals / Alert | SOS |
-|:---:|:---:|:---:|
-| ![Home](images/Home.png) | ![Vitals](images/Vitals.png) | ![SOS](images/SOS.png) |
+
+| Sign in | Home (Press-and-hold SOS) |
+|:---:|:---:|
+| ![Sign in](app_images/phone/Screenshot_20260503-235702.png) | ![Home](app_images/phone/Screenshot_20260503-235732.png) |
+
+| Vitals (live HR) | Active alert (countdown + I'm Safe) |
+|:---:|:---:|
+| ![Vitals](app_images/phone/Screenshot_20260503-235749.png) | ![Active alert](app_images/phone/Screenshot_20260503-235809.png) |
 
 ### Wear OS
-| Measure | Active alert |
-|:---:|:---:|
-| ![Measure](images/Measure.png) | ![Measuring](images/Measuring.png) |
 
-Newer captures live in [`app_images/`](app_images).
+| Monitoring | SOS countdown |
+|:---:|:---:|
+| ![Monitoring](app_images/watch/watch_screenshot.png) | ![SOS countdown](app_images/watch/watch_sos.png) |
 
 
 ---
