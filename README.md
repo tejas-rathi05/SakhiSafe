@@ -1,15 +1,12 @@
 <p align="center">
-  <img src="images/logo.png" alt="Sakhi Safe Logo" width="200" />
+  <img width="300" alt="VSafe_Banner" src="https://github.com/user-attachments/assets/7104f0d3-1c1f-49ba-b6be-e320e1e9705f" />
 </p>
 
 
-# SakhiSafe
+# VSafe
 
 > **Breaking the Silence: Innovating Safety Solutions to Deter Sexual Violence**
 
-**Smart India Hackathon 2024**  
-**Problem Statement ID:** SIH1605 – Women Safety Analytics  
-**Team:** Innovisionaries  
 
 ---
 
@@ -33,7 +30,7 @@
 
 ## Overview
 
-**Sakhi Safe** is a cutting‑edge safety solution designed to combat sexual violence against women by integrating:
+**VSafe** is a cutting‑edge safety solution designed to combat sexual violence against women by integrating:
 
 - A **smart wearable** (smartwatch/fitness band)  
 - An **Android mobile app** with AI‑driven monitoring  
@@ -184,9 +181,6 @@ This project is licensed under the [MIT License](LICENSE).
 - Tejas Rathi – [rathi.tejas1155@gmail.com](mailto:rathi.tejas1155@gmail.com)
 - Vinayak Parashar – [vinayakbparashar@gmail.com](mailto:vinayakbparashar@gmail.com)
 - Harsh
-- Geetika
-- Vaastav Vardhan
-- Harsh Malik
  
 
 
