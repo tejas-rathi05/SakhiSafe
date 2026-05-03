@@ -39,6 +39,14 @@
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".domain.trip.TripAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.heysafe.app.action.TRIP_ALARM_FIRE" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

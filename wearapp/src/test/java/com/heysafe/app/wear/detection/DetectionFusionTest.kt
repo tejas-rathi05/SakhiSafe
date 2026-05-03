@@ -13,16 +13,20 @@ class DetectionFusionTest {
         assertEquals("heuristic", DetectionFusion.fuse(true, 0.1f, 0.75f))
     }
 
-    @Test fun `only ml returns ml`() {
-        assertEquals("ml", DetectionFusion.fuse(false, 0.9f, 0.75f))
+    @Test fun `ml alone does not fire`() {
+        // ML is a corroborating signal only — never fires SOS without the heuristic.
+        assertNull(DetectionFusion.fuse(false, 0.9f, 0.75f))
     }
 
     @Test fun `both returns both`() {
         assertEquals("both", DetectionFusion.fuse(true, 0.9f, 0.75f))
     }
 
-    @Test fun `ml threshold is exclusive at the boundary`() {
-        // mlScore = threshold should fire (>=)
-        assertEquals("ml", DetectionFusion.fuse(false, 0.75f, 0.75f))
+    @Test fun `ml at threshold without heuristic still does not fire`() {
+        assertNull(DetectionFusion.fuse(false, 0.75f, 0.75f))
+    }
+
+    @Test fun `ml at threshold with heuristic upgrades to both`() {
+        assertEquals("both", DetectionFusion.fuse(true, 0.75f, 0.75f))
     }
 }

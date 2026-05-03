@@ -39,11 +39,11 @@ fun SplashScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
                     painter = painterResource(R.drawable.ic_logo),
-                    contentDescription = "HeySafe",
+                    contentDescription = "VSafe",
                     modifier = Modifier.size(120.dp),
                 )
                 Spacer(Modifier.height(16.dp))
-                Text("HeySafe", style = MaterialTheme.typography.headlineLarge)
+                Text("VSafe", style = MaterialTheme.typography.headlineLarge)
                 Spacer(Modifier.height(24.dp))
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }

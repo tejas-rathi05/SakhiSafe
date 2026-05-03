@@ -1,6 +1,6 @@
 package com.heysafe.app.ui.alert
 
-import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,14 +13,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.heysafe.app.di.ServiceLocator
 import com.heysafe.app.ui.theme.Primary
-import com.heysafe.app.ui.theme.SurfaceDarkBot
-import com.heysafe.app.ui.theme.SurfaceDarkTop
+import com.heysafe.app.ui.theme.SlateDark
+import com.heysafe.app.ui.theme.SlateMid
+import kotlinx.coroutines.delay
+
+private const val COUNTDOWN_SECONDS = 15
 
 @Composable
 fun ActiveAlertScreen(
@@ -28,6 +36,12 @@ fun ActiveAlertScreen(
     vm: AlertViewModel = viewModel { AlertViewModel(ServiceLocator.alertOrchestrator) },
 ) {
     val p by vm.progress.collectAsState()
+    val name = remember {
+        ServiceLocator.authRepository.currentUser()?.email
+            ?.substringBefore("@")
+            ?.replaceFirstChar { it.uppercase() } ?: "there"
+    }
+
     LaunchedEffect(p.resolved) {
         if (p.resolved) {
             onResolved()
@@ -35,44 +49,127 @@ fun ActiveAlertScreen(
         }
     }
 
+    var secondsLeft by remember { mutableStateOf(COUNTDOWN_SECONDS) }
+    LaunchedEffect(Unit) {
+        while (secondsLeft > 0) {
+            delay(1000)
+            secondsLeft -= 1
+        }
+    }
+    val progressFraction = 1f - (secondsLeft.toFloat() / COUNTDOWN_SECONDS)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(SurfaceDarkTop, SurfaceDarkBot)))
+            .background(SlateDark),
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 32.dp),
         ) {
-            Column {
-                PulseRing()
-                Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(24.dp))
+            Text(
+                "Stay Calm, $name.",
+                color = Color.White,
+                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.displaySmall,
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "We are sending an alert to your emergency circle, everyone nearby and Law Enforcement",
+                color = Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+
+            Spacer(Modifier.weight(0.4f))
+
+            // Countdown number
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
-                    "Sending alert to your emergency circle",
+                    text = if (secondsLeft > 0) secondsLeft.toString() else "GO",
                     color = Color.White,
-                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 96.sp,
                 )
-                Spacer(Modifier.height(8.dp))
-                p.errorMessage?.let {
-                    Text(it, color = Primary, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.height(8.dp))
+            }
+
+            Spacer(Modifier.weight(0.3f))
+
+            // Progress ring + SOS center
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Canvas(modifier = Modifier.size(260.dp)) {
+                    val stroke = 18.dp.toPx()
+                    val inset = stroke / 2
+                    drawArc(
+                        color = SlateMid,
+                        startAngle = -90f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        topLeft = Offset(inset, inset),
+                        size = Size(size.width - stroke, size.height - stroke),
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
+                    drawArc(
+                        color = Primary,
+                        startAngle = -90f,
+                        sweepAngle = 360f * progressFraction,
+                        useCenter = false,
+                        topLeft = Offset(inset, inset),
+                        size = Size(size.width - stroke, size.height - stroke),
+                        style = Stroke(width = stroke, cap = StrokeCap.Round),
+                    )
                 }
-                Spacer(Modifier.height(16.dp))
-                StatusLine(if (p.gpsCaptured) "📍 Location captured" else "📍 Locating…")
-                StatusLine(if (p.audioRecording) "🎙 Recording 30s audio" else "🎙 Audio off")
-                if (p.alertId != null) {
-                    StatusLine("☁️ Alert ${p.alertId} written to cloud")
-                }
-                Spacer(Modifier.height(16.dp))
-                p.contactsSent.forEach { Text("✅  $it", color = Color.White) }
-                p.contactsPending.forEach { Text("⏱  $it", color = Color.White.copy(alpha = 0.7f)) }
-                if (p.contactsSent.isEmpty() && p.contactsPending.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .clip(CircleShape)
+                        .background(Primary.copy(alpha = 0.55f)),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        "No emergency contacts configured. Add some on the Contacts screen.",
-                        color = Color.White.copy(alpha = 0.7f),
+                        "SOS",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 56.sp,
                     )
                 }
             }
+
+            Spacer(Modifier.weight(0.4f))
+
+            // Compact alert status
+            p.errorMessage?.let {
+                Text(it, color = Primary, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(8.dp))
+            }
+            val statusLine = buildString {
+                append(if (p.gpsCaptured) "📍 Location sent  " else "📍 Locating…  ")
+                append(if (p.audioRecording) "🎙 Recording" else "🎙 —")
+            }
+            Text(
+                statusLine,
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (p.contactsSent.isNotEmpty()) {
+                Text(
+                    "Notified: ${p.contactsSent.joinToString(", ")}",
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
             Button(
                 onClick = { vm.resolve() },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -81,48 +178,9 @@ fun ActiveAlertScreen(
                     contentColor = Color.Black,
                 ),
                 shape = RoundedCornerShape(16.dp),
-            ) { Text("I'm Safe") }
+            ) {
+                Text("I'm Safe", fontWeight = FontWeight.SemiBold)
+            }
         }
-    }
-}
-
-@Composable
-private fun StatusLine(text: String) {
-    Text(text, color = Color.White, modifier = Modifier.padding(vertical = 2.dp))
-}
-
-@Composable
-private fun PulseRing() {
-    val infinite = rememberInfiniteTransition(label = "pulse")
-    val scale by infinite.animateFloat(
-        initialValue = 1f, targetValue = 1.4f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulse-scale",
-    )
-    val alpha by infinite.animateFloat(
-        initialValue = 0.7f, targetValue = 0.2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "pulse-alpha",
-    )
-    Box(modifier = Modifier.fillMaxWidth().height(140.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size((96 * scale).dp)
-                .clip(CircleShape)
-                .background(Primary.copy(alpha = alpha))
-        )
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .clip(CircleShape)
-                .background(Primary)
-        )
-        Text("SOS", color = Color.White, style = MaterialTheme.typography.headlineMedium)
     }
 }

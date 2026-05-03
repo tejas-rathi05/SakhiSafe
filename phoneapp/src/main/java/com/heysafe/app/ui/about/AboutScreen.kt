@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.heysafe.app.di.ServiceLocator
 
 @Composable
-fun AboutScreen(onSignedOut: () -> Unit) {
+fun AboutScreen(onSignedOut: () -> Unit, onOpenHelp: () -> Unit = {}) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -18,7 +18,7 @@ fun AboutScreen(onSignedOut: () -> Unit) {
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Text("About HeySafe", style = MaterialTheme.typography.headlineLarge)
+            Text("About VSafe", style = MaterialTheme.typography.headlineLarge)
             Text(
                 "v1.0 — SRM Major Project",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -65,6 +65,13 @@ fun AboutScreen(onSignedOut: () -> Unit) {
             )
 
             Spacer(Modifier.height(24.dp))
+            OutlinedButton(
+                onClick = onOpenHelp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+            ) { Text("Help & emergency contacts") }
+            Spacer(Modifier.height(12.dp))
             Button(
                 onClick = {
                     ServiceLocator.authRepository.signOut()

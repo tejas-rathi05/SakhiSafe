@@ -1,4 +1,4 @@
-# HeySafe — 3-Minute Demo Script
+# VSafe — 3-Minute Demo Script
 
 > Run-time target: 3 min walkthrough + 2 min Q&A buffer.
 
@@ -59,7 +59,7 @@
 | If this fails                              | Fall back to                                                                          |
 |--------------------------------------------|---------------------------------------------------------------------------------------|
 | Bluetooth pairing fails                    | Use phone's long-press SOS — same alert pipeline, no watch needed                     |
-| Watch sensor permission reset              | Re-grant in Watch Settings → Apps → HeySafe → Permissions                            |
+| Watch sensor permission reset              | Re-grant in Watch Settings → Apps → VSafe → Permissions                              |
 | GPS lock takes too long                    | Alert still fires; mention "fallback to last known location, ±100 m accuracy"        |
 | WhatsApp not installed on contact's phone  | Skip; dashboard still updates — say "this would normally land in WhatsApp"           |
 | Dashboard fails to load                    | Pre-recorded backup video on phone (`/sdcard/Movies/heysafe-demo.mp4`)                |

@@ -33,6 +33,7 @@ interface AlertOrchestrator {
     val progress: StateFlow<AlertProgress>
     suspend fun onWearAlert(triggerSource: String, hrWindow: FloatArray, motionWindow: FloatArray)
     suspend fun onManualAlert()
+    suspend fun onAutoAlert(source: String)
     suspend fun resolve()
     fun clear()
 }
@@ -57,6 +58,8 @@ class DefaultAlertOrchestrator(
         runAlert(triggerSource, hrWindow.toList(), motionWindow.toList())
 
     override suspend fun onManualAlert() = runAlert("manual", emptyList(), emptyList())
+
+    override suspend fun onAutoAlert(source: String) = runAlert(source, emptyList(), emptyList())
 
     override suspend fun resolve() {
         currentAlertId?.let { alertsRepo.resolve(it) }

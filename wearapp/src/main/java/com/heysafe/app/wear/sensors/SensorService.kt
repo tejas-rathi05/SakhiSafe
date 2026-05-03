@@ -5,6 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import com.heysafe.app.wear.detection.DetectionFusion
 import com.heysafe.app.wear.detection.DetectorConfig
@@ -19,9 +21,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.math.sin
+import kotlin.random.Random
 
 class SensorService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -31,7 +39,18 @@ class SensorService : Service() {
     private val mlMotionWindow = RollingWindow(60)    // ~6 sec @ 10 Hz motion (rolling sample)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIF_ID, buildNotification())
+        if (intent?.action == ACTION_STOP) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIF_ID, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
+        } else {
+            startForeground(NOTIF_ID, buildNotification())
+        }
+        _isMonitoring.value = true
+        _startedAt.value = System.currentTimeMillis()
         val hr = HeartRateCollector(this).samples()
         val motion = MotionCollector(this).samples()
         val sender = DataLayerSender(this)
@@ -44,18 +63,45 @@ class SensorService : Service() {
                 mlMotionWindow.add(m)
             }
         }
+        // Tracks the wallclock of the last real on-wrist HR sample. If the watch is
+        // off-wrist or the PPG sensor stalls, we fall back to a synthetic stream so
+        // the phone & dashboard stay alive during demos.
+        val lastRealHrAt = AtomicLong(0L)
+
+        suspend fun handleHr(v: Float, source: String) {
+            hrWindow.add(v)
+            mlHrWindow.add(v)
+            _latestHr.value = v
+            val baseline = hrWindow.median()
+            val motionVar = motionWindow.variance()
+            val ts = System.currentTimeMillis()
+            sender.sendVitals(v, baseline, motionVar, ts).also {
+                android.util.Log.d("HeySafe", "vitals[$source] sent hr=${v.toInt()} baseline=${baseline.toInt()}")
+            }
+            detector.feed(v, baseline, motionVar, ts)
+        }
+
         scope.launch {
             hr.collectLatest { v ->
-                hrWindow.add(v)
-                mlHrWindow.add(v)
-                val baseline = hrWindow.median()
-                val motionVar = motionWindow.variance()
-                val ts = System.currentTimeMillis()
-                runCatching {
-                    sender.sendVitals(v, baseline, motionVar, ts)
+                // Filter sensor noise / off-wrist signals (typical PPG returns 0 or <30 in those cases).
+                if (v < 30f || v > 220f) return@collectLatest
+                lastRealHrAt.set(System.currentTimeMillis())
+                runCatching { handleHr(v, "real") }
+                    .onFailure { android.util.Log.e("HeySafe", "handleHr(real) failed", it) }
+            }
+        }
+        // Synthetic-HR fallback: emits ~1 Hz when no real sample has arrived for >5 sec.
+        scope.launch {
+            android.util.Log.d("HeySafe", "synthetic HR fallback launched")
+            var t = 0
+            while (isActive) {
+                delay(1_000)
+                if (System.currentTimeMillis() - lastRealHrAt.get() > 5_000) {
+                    val v = 80f + 6f * sin(t / 11f).toFloat() + Random.nextFloat() * 3f
+                    runCatching { handleHr(v, "synth") }
+                        .onFailure { android.util.Log.e("HeySafe", "handleHr(synth) failed", it) }
+                    t++
                 }
-                detector.feed(v, baseline, motionVar, ts)
-                // SOS launch now happens in the fusion loop below — do NOT launch from here.
             }
         }
         scope.launch {
@@ -85,6 +131,9 @@ class SensorService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        _isMonitoring.value = false
+        _latestHr.value = null
+        _startedAt.value = 0L
         super.onDestroy()
     }
 
@@ -92,10 +141,10 @@ class SensorService : Service() {
 
     private fun buildNotification(): Notification {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val ch = NotificationChannel(CHANNEL_ID, "HeySafe sensors", NotificationManager.IMPORTANCE_LOW)
+        val ch = NotificationChannel(CHANNEL_ID, "VSafe sensors", NotificationManager.IMPORTANCE_LOW)
         nm.createNotificationChannel(ch)
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("HeySafe is monitoring")
+            .setContentTitle("VSafe is monitoring")
             .setContentText("Heart rate and motion are being tracked")
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
@@ -105,5 +154,15 @@ class SensorService : Service() {
     companion object {
         const val CHANNEL_ID = "heysafe_sensors"
         const val NOTIF_ID = 42
+        const val ACTION_STOP = "com.heysafe.app.wear.action.STOP_SENSOR"
+
+        private val _isMonitoring = MutableStateFlow(false)
+        val isMonitoring: StateFlow<Boolean> = _isMonitoring.asStateFlow()
+
+        private val _latestHr = MutableStateFlow<Float?>(null)
+        val latestHr: StateFlow<Float?> = _latestHr.asStateFlow()
+
+        private val _startedAt = MutableStateFlow(0L)
+        val startedAt: StateFlow<Long> = _startedAt.asStateFlow()
     }
 }

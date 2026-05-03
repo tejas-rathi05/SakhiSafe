@@ -20,9 +20,9 @@ private data class BottomItem(val route: String, val label: String, val icon: Im
 private val items = listOf(
     BottomItem(Routes.Home, "Home", Icons.Outlined.Home),
     BottomItem(Routes.Vitals, "Vitals", Icons.Outlined.Favorite),
-    // Help icon: temporary Star substitute (Phase 7 polish swaps to a proper help glyph
-    // once material-icons-extended is added; avoids the extra dependency for now).
-    BottomItem(Routes.Help, "Help", Icons.Outlined.Star),
+    // Trip icon: Star is the closest pin/landmark glyph in core material-icons (extended
+    // dependency intentionally not added). Swap when a proper place pin is available.
+    BottomItem(Routes.Trip, "Trip", Icons.Outlined.Star),
     BottomItem(Routes.About, "Info", Icons.Outlined.Info),
 )
 

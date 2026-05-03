@@ -41,7 +41,11 @@ class WearDataListenerService : WearableListenerService() {
                     }
                 }
                 path.startsWith(WearMessages.PATH_ALERT_CANCELED) -> {
-                    Log.i("HeySafe", "Wear alert canceled by user")
+                    Log.i("HeySafe", "Wear alert canceled by user — resolving active alert")
+                    GlobalScope.launch {
+                        runCatching { ServiceLocator.alertOrchestrator.resolve() }
+                            .onFailure { Log.e("HeySafe", "Failed to resolve alert from cancel", it) }
+                    }
                 }
             }
         }

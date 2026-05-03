@@ -7,12 +7,14 @@ import com.heysafe.app.data.auth.AuthRepository
 import com.heysafe.app.data.auth.FirebaseAuthBackend
 import com.heysafe.app.data.contacts.ContactsRepository
 import com.heysafe.app.data.contacts.FirestoreContactsBackend
+import com.heysafe.app.data.trips.TripsRepository
 import com.heysafe.app.data.vitals.VitalsRepository
 import com.heysafe.app.domain.alert.AlertOrchestrator
 import com.heysafe.app.domain.alert.DefaultAlertOrchestrator
 import com.heysafe.app.domain.alert.WhatsAppLauncher
 import com.heysafe.app.domain.audio.AudioRecorder
 import com.heysafe.app.domain.audio.SoundAlarmController
+import com.heysafe.app.domain.trip.TripMonitor
 import com.heysafe.app.location.LocationProvider
 
 object ServiceLocator {
@@ -21,8 +23,10 @@ object ServiceLocator {
     lateinit var contactsRepository: ContactsRepository
     lateinit var vitalsRepository: VitalsRepository
     lateinit var alertsRepository: AlertsRepository
+    lateinit var tripsRepository: TripsRepository
     lateinit var alertOrchestrator: AlertOrchestrator
     lateinit var soundAlarmController: SoundAlarmController
+    lateinit var tripMonitor: TripMonitor
 
     fun init(context: Context) {
         if (initialized) return
@@ -33,6 +37,7 @@ object ServiceLocator {
             contactsRepository = ContactsRepository(FirestoreContactsBackend())
             vitalsRepository = VitalsRepository()
             alertsRepository = AlertsRepository(FirebaseAlertsBackend())
+            tripsRepository = TripsRepository()
             alertOrchestrator = DefaultAlertOrchestrator(
                 context = appCtx,
                 auth = authRepository,
@@ -43,6 +48,12 @@ object ServiceLocator {
                 whatsAppLauncher = WhatsAppLauncher(appCtx),
             )
             soundAlarmController = SoundAlarmController(appCtx)
+            tripMonitor = TripMonitor(
+                context = appCtx,
+                orchestrator = alertOrchestrator,
+                tripsRepo = tripsRepository,
+                auth = authRepository,
+            )
             initialized = true
         }
     }

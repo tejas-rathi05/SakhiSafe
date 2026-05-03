@@ -33,7 +33,7 @@ fun RegisterScreen(
             Text("Create account", style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(4.dp))
             Text(
-                "Stay safe with HeySafe",
+                "Stay safe with VSafe",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
