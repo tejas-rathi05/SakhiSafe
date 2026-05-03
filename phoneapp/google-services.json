@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1067270702474",
+    "project_id": "heysafe-demo-4bca5",
+    "storage_bucket": "heysafe-demo-4bca5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1067270702474:android:0496513e44bc1b45347473",
+        "android_client_info": {
+          "package_name": "com.heysafe.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCT8EqbA_RpERxdQCF5AthQyyVBoqEpfWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

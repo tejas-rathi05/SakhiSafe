@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VSafe Guardian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
+</head>
+<body>
+<div class="container">
+  <header class="app-header">
+    <div class="logo">
+      <div class="logo-mark"><img src="logo.jpeg" alt="VSafe" /></div>
+      <div>
+        <h1>VSafe Guardian</h1>
+        <div class="subtitle">
+          <span class="live-dot"></span>
+          <span id="liveBadge">Live monitoring · connected</span>
+        </div>
+      </div>
+    </div>
+    <button id="logoutBtn" class="btn btn-ghost">Sign out</button>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-card tone-alert">
+      <div class="stat-label"><span class="stat-icon">🚨</span> Active alerts</div>
+      <div class="stat-value" id="statActive">0</div>
+      <div class="stat-meta" id="statActiveMeta">No active emergencies</div>
+    </div>
+    <div class="stat-card tone-info">
+      <div class="stat-label"><span class="stat-icon">📊</span> Today</div>
+      <div class="stat-value" id="statToday">0</div>
+      <div class="stat-meta">Alerts in last 24 h</div>
+    </div>
+    <div class="stat-card tone-ok">
+      <div class="stat-label"><span class="stat-icon">✓</span> Resolved (7d)</div>
+      <div class="stat-value" id="statResolved">0</div>
+      <div class="stat-meta">Past week</div>
+    </div>
+    <div class="stat-card tone-warn">
+      <div class="stat-label"><span class="stat-icon">❤️</span> Avg HR</div>
+      <div class="stat-value" id="statAvgHr">—</div>
+      <div class="stat-meta">During recent alerts</div>
+    </div>
+  </div>
+
+  <div id="trip" class="card trip-card" style="display:none">
+    <div class="trip-header">
+      <div class="trip-icon">🚶</div>
+      <div class="trip-body">
+        <div class="trip-title" id="tripTitle">Trip in progress</div>
+        <div class="trip-meta" id="tripMeta">—</div>
+      </div>
+      <div class="trip-countdown" id="tripCountdown">--:--</div>
+    </div>
+    <div class="trip-progress-track">
+      <div class="trip-progress-fill" id="tripProgress"></div>
+    </div>
+  </div>
+
+  <div id="active" class="card alert-card" style="display:none">
+    <div class="alert-header">
+      <div class="alert-status-dot"></div>
+      <div class="alert-title-block">
+        <div class="alert-title" id="activeTitle">SOS Alert</div>
+        <div class="alert-meta" id="activeMeta"></div>
+      </div>
+    </div>
+
+    <div class="alert-grid">
+      <div class="panel">
+        <div class="panel-title">📍 Location</div>
+        <div id="map"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">❤️ Heart rate (last window)</div>
+        <div class="hr-stats" id="hrStats" style="display:none">
+          <div class="hr-stat"><div class="label">avg</div><div class="value" id="hrAvg">—</div></div>
+          <div class="hr-stat"><div class="label">peak</div><div class="value" id="hrPeak">—</div></div>
+          <div class="hr-stat"><div class="label">samples</div><div class="value" id="hrCount">—</div></div>
+        </div>
+        <canvas id="hrChart" height="100"></canvas>
+        <div class="audio-wrap" id="audioWrap">
+          <div class="panel-title" style="margin-bottom:6px">🎙 Voice memo (30s)</div>
+          <canvas id="audioWave" class="audio-wave"></canvas>
+          <audio id="audio" controls></audio>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="resolveBtn" class="btn btn-success">Mark resolved</button>
+      <button id="callBtn" class="btn btn-ghost">Call user</button>
+      <a id="mapsBtn" class="btn btn-ghost" target="_blank" rel="noopener" style="text-decoration:none">Open in Maps</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Alert history</h2>
+    <div class="section-meta">Click a row to inspect details · newest first</div>
+    <div id="history"></div>
+  </div>
+</div>
+<script type="module" src="auth.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

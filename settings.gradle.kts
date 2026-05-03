@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MyApp"
-include(":app")
-include(":sakhisafeapp")
+rootProject.name = "VSafe"
+include(":phoneapp")
+include(":wearapp")

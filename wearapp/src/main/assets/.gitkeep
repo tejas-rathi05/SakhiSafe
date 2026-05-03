@@ -1,0 +1,5 @@
+# Placeholder so this directory exists in git.
+# Once `ml/train_stub.py` (or train_wesad.ipynb) is run, copy:
+#   ml/model.tflite          -> wearapp/src/main/assets/model.tflite
+#   ml/feature_scaler.json   -> wearapp/src/main/assets/feature_scaler.json
+# See ml/RESULTS.md for the full instructions.

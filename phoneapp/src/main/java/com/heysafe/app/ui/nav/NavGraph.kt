@@ -1,0 +1,124 @@
+package com.heysafe.app.ui.nav
+
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.heysafe.app.di.ServiceLocator
+import com.heysafe.app.ui.about.AboutScreen
+import com.heysafe.app.ui.alert.ActiveAlertScreen
+import com.heysafe.app.ui.auth.LoginScreen
+import com.heysafe.app.ui.auth.RegisterScreen
+import com.heysafe.app.ui.contacts.AddContactScreen
+import com.heysafe.app.ui.contacts.ContactsScreen
+import com.heysafe.app.ui.help.HelpScreen
+import com.heysafe.app.ui.home.HomeScreen
+import com.heysafe.app.ui.splash.SplashScreen
+import com.heysafe.app.ui.trip.TripScreen
+import com.heysafe.app.ui.vitals.VitalsScreen
+
+private const val SLIDE_DURATION = 320
+private const val FADE_DURATION = 220
+
+private val enter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+    slideInHorizontally(tween(SLIDE_DURATION)) { it / 6 } + fadeIn(tween(FADE_DURATION))
+}
+private val exit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+    slideOutHorizontally(tween(SLIDE_DURATION)) { -it / 12 } + fadeOut(tween(FADE_DURATION))
+}
+private val popEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+    slideInHorizontally(tween(SLIDE_DURATION)) { -it / 6 } + fadeIn(tween(FADE_DURATION))
+}
+private val popExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+    slideOutHorizontally(tween(SLIDE_DURATION)) { it / 12 } + fadeOut(tween(FADE_DURATION))
+}
+
+@Composable
+fun HeyNavGraph(navController: NavHostController, startDestination: String) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        enterTransition = enter,
+        exitTransition = exit,
+        popEnterTransition = popEnter,
+        popExitTransition = popExit,
+    ) {
+        composable(Routes.Splash) {
+            SplashScreen(
+                onAuthenticated = {
+                    navController.navigate(Routes.Home) { popUpTo(Routes.Splash) { inclusive = true } }
+                },
+                onUnauthenticated = {
+                    navController.navigate(Routes.Login) { popUpTo(Routes.Splash) { inclusive = true } }
+                },
+            )
+        }
+        composable(Routes.Login) {
+            LoginScreen(
+                onLoggedIn = {
+                    navController.navigate(Routes.Home) { popUpTo(Routes.Login) { inclusive = true } }
+                },
+                onGoToRegister = { navController.navigate(Routes.Register) },
+            )
+        }
+        composable(Routes.Register) {
+            RegisterScreen(
+                onRegistered = {
+                    navController.navigate(Routes.Home) {
+                        popUpTo(Routes.Login) { inclusive = true }
+                    }
+                },
+                onGoBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.Home) {
+            HomeScreen(
+                onSoundAlarmTap = { ServiceLocator.soundAlarmController.toggle() },
+                onManageContacts = { navController.navigate(Routes.Contacts) },
+            )
+        }
+        composable(Routes.Vitals) { VitalsScreen() }
+        composable(Routes.Trip) { TripScreen() }
+        composable(Routes.Contacts) {
+            ContactsScreen(
+                onAddContact = { navController.navigate(Routes.AddContact) },
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.AddContact) {
+            AddContactScreen(
+                onSaved = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.Help) { HelpScreen() }
+        composable(Routes.About) {
+            AboutScreen(
+                onSignedOut = {
+                    navController.navigate(Routes.Login) { popUpTo(0) { inclusive = true } }
+                },
+                onOpenHelp = { navController.navigate(Routes.Help) },
+            )
+        }
+        composable(
+            Routes.ActiveAlert,
+            enterTransition = { fadeIn(tween(280)) },
+            exitTransition = { fadeOut(tween(220)) },
+        ) {
+            ActiveAlertScreen(onResolved = {
+                if (!navController.popBackStack(Routes.Home, inclusive = false)) {
+                    navController.navigate(Routes.Home) { popUpTo(0) { inclusive = true } }
+                }
+            })
+        }
+    }
+}
